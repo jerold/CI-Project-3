@@ -96,14 +96,14 @@ def printPatterns(pattern):
 
 
 class Net:
-    def __init__(self, patternSet):
-        inputLayer = Layer(NetLayerType.Input, None, patternSet.inputMagnitude())
-        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.outputMagnitude())
-        outputLayer = Layer(NetLayerType.Output, hiddenLayer, patternSet.outputMagnitude())
-        self.layers = [inputLayer, hiddenLayer, outputLayer]
+    def __init__(self, patternSet, hiddenArch):
+        self.layers.append(Layer(NetLayerType.Input, None, patternSet.inputMagnitude()))
+        for elem in hiddenArch:
+            self.layer.append(Layer(NetLayerType.Hidden, self.layers[-1], elem))
+        self.layers.append(Layer(NetLayerType.Output, self.layers[-1], patternSet.outputMagnitude()))
         self.patternSet = patternSet
         self.absError = 100
-        self.buildCenters()
+        #self.buildCenters()
 
     # Run is where the magic happens. Training Testing or Validation mode is indicated and
     # the coorisponding pattern set is loaded and ran through the network
