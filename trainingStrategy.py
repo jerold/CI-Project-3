@@ -28,13 +28,13 @@ class Member():
     def adjustFitness(self, value):
         self.fitness = self.fitness + value
 
-    def getGenesForNeuron(self, neuronNumber):
+    def getGenesAtPosition(self, neuronNumber):
         if len(self.genome) > len(Member.genomeTemplate):
             return {'genes':self.genome[neuronNumber], 'strategy parameters':self.genome[len(Member.genomeTemplate) + neuronNumber]}
         return {'genes':self.genome[neuronNumber]}
 
     # Used by the MLP during backprop
-    def setGenesForNeuron(self, neuronNumber, values):
+    def setGenesAtPosition(self, neuronNumber, values):
         if len(values) == len(self.genome[neuronNumber]):
             self.genome[neuronNumber] = values
         else:
@@ -94,10 +94,10 @@ class TrainingStrategy(object):
             member.fitness = 0.0
 
     def getWeightsForNeuron(self, neuronNumber):
-        return self.population[self.currentMember].getGenesForNeuron(neuronNumber)
+        return self.population[self.currentMember].getGenesAtPosition(neuronNumber)
 
     def setWeightsForNeuron(self, neuronNumber, weights):
-        return self.population[self.currentMember].setGenesForNeuron(neuronNumber, weights)
+        return self.population[self.currentMember].setGenesAtPosition(neuronNumber, weights)
 
 
     def select(self):
