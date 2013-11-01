@@ -22,10 +22,53 @@ flare = {'inFiles':['data/flare/flare.data1',
              'width':10,
              'height':1}
 
-flare = {'inFiles':['data/houseing/houseing.data'],
-             'outFile':'data/flare/flare.json',
-             'width':10,
+adult = {'inFiles':['data/adult/adult.data'],
+             'outFile':'data/adult/adult.json',
+             'width':15,
              'height':1}
+
+
+
+def parseAdult(lines):
+    patSet = []
+    attributes = [[] for _ in range(15)]
+    attributesAlt = [{'continuous':True},
+                     {'Private':7, 'Self-emp-not-inc':5, 'Self-emp-inc':6, 'Federal-gov':4, 'Local-gov':2, 'State-gov':3, 'Without-pay':1, 'Never-worked':0, 'continuous':False},
+                     {'continuous':True},
+                     {'Bachelors':12, 'Some-college':8, '11th':5, 'HS-grad':7, 'Prof-school':9, 'Assoc-acdm':10, 'Assoc-voc':11, '9th':3, '7th-8th':2, '12th':6, 'Masters':13, '1st-4th':1, '10th':4, 'Doctorate':14, '5th-6th':2, 'Preschool':0, 'continuous':False},
+                     {'continuous':True},
+                     {'Married-civ-spouse':1, 'Divorced':3, 'Never-married':6, 'Separated':4, 'Widowed':5, 'Married-spouse-absent':2, 'Married-AF-spouse':0, 'continuous':False},
+                     {'Tech-support':1, 'Craft-repair':2, 'Other-service':3, 'Sales':4, 'Exec-managerial':5, 'Prof-specialty':6, 'Handlers-cleaners':7, 'Machine-op-inspct':8, 'Adm-clerical':9, 'Farming-fishing':10, 'Transport-moving':11, 'Priv-house-serv':12, 'Protective-serv':13, 'Armed-Forces':14, '?':6, 'continuous':False},
+                     {'Wife':4, 'Own-child':1, 'Husband':5, 'Not-in-family':3, 'Other-relative':3, 'Unmarried':2, 'continuous':False},
+                     {'White':5, 'Asian-Pac-Islander':4, 'Amer-Indian-Eskimo':3, 'Other':2, 'Black':1, 'continuous':False},
+                     {'Female':2, 'Male':1, 'continuous':False},
+                     {'continuous':True},
+                     {'continuous':True},
+                     {'continuous':True},
+                     {"United-States":0, "Cambodia":1, "England":2, "Puerto-Rico":3, "Canada":4, "Germany":5, "Outlying-US(Guam-USVI-etc)":6, "India":7, "Japan":8, "Greece":9, "South":10, "China":11, "Cuba":12, "Iran":13, "Honduras":14, "Philippines":15, "Italy":16, "Poland":17, "Jamaica":18, "Vietnam":19, "Mexico":20, "Portugal":21, "Ireland":22, "France":23, "Dominican-Republic":24, "Laos":25, "Ecuador":26, "Taiwan":27, "Haiti":28, "Columbia":29, "Hungary":30, "Guatemala":31, "Nicaragua":32, "Scotland":33, "Thailand":34, "Yugoslavia":35, "El-Salvador":36, "Trinadad&Tobago":37, "Peru":38, "Hong":39, "Holand-Netherlands":40, "?":0, 'continuous':False}]
+    targets = []
+    targetsAlt = {'>50K':1, '<=50K':2}
+    for line in lines:
+        line = line.split('\n')[0]
+        line = line.split(', ')
+        pattern = line[:len(line)-1]
+        print(line)
+        for i, elem in enumerate(pattern):
+            if attributesAlt[i]['continuous']:
+                pattern[i] = elem
+            else:
+                pattern[i] = attributesAlt[i][elem]
+            attributes[i].append(pattern[i])
+        patternTarget = targetsAlt[line[-1]]
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(set(attribute))
+    return patSet
 
 
 def parseFlare(lines):
@@ -51,6 +94,7 @@ def parseFlare(lines):
         targets[1].append(patternTarget[1])
         targets[2].append(patternTarget[2])
         #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
     print(set(targets[0]))
     print(set(targets[1]))
     print(set(targets[2]))
@@ -81,6 +125,7 @@ def parseCar(lines):
         patSet.append({'p':pattern, 't':patternTarget})
         targets.append(patternTarget)
         #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
     print(set(targets))
     print("Attributes")
     for attribute in attributes:
@@ -89,6 +134,7 @@ def parseCar(lines):
 
 def parseBlock(lines):
     patSet = []
+    attributes = [[] for _ in range(10)]
     targets = []
     for line in lines:
         line = line.split('\n')[0]
@@ -96,11 +142,16 @@ def parseBlock(lines):
         pattern = line[:len(line)-1]
         for i in range(len(pattern)):
             pattern[i] = float(pattern[i])
+            attributes[i].append(pattern[i])
         patternTarget = int(line[len(line)-1])
         patSet.append({'p':pattern, 't':patternTarget})
         targets.append(patternTarget)
         #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
     print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(len(set(attribute)))
     return patSet
 
 
@@ -281,27 +332,37 @@ def printPattern(pattern):
 
 
 if __name__=="__main__":
+    parseSets = [pageBlock, car, flare, adult]
     #parseSet = pageBlock
-    #parseSet = car
-    parseSet = flare
+    #parseSets = [car]
+    #parseSet = flare
+    parseSets = [adult]
     
-    lines = []
-    for fileName in parseSet['inFiles']:
-        with open(fileName) as file:
-            fileLines = file.readlines()
-            for line in fileLines:
-                lines.append(line)
-                
-    #patternSet = parseBlock(lines)
-    #patternSet = parseCar(lines)
-    patternSet = parseFlare(lines)
-       
-    print("pats: " + str(len(patternSet)))
-    with open(parseSet['outFile'], 'w+') as outfile:
-        data = {'count':len(patternSet),
-                'width':parseSet['width'],
-                'height':parseSet['height'],
-                'patterns':patternSet}
-        json.dump(data, outfile)
+    for parseSet in parseSets:
+        lines = []
+        for fileName in parseSet['inFiles']:
+            with open(fileName) as file:
+                fileLines = file.readlines()
+                for line in fileLines:
+                    lines.append(line)
+        print(parseSet['inFiles'][0])
+        
+        if parseSet['outFile'] == pageBlock['outFile']:
+            patternSet = parseBlock(lines)
+        elif parseSet['outFile'] == car['outFile']:
+            patternSet = parseCar(lines)
+        elif parseSet['outFile'] == flare['outFile']:
+            patternSet = parseFlare(lines)
+        elif parseSet['outFile'] == adult['outFile']:
+            patternSet = parseAdult(lines)
+            
+        print("pats: " + str(len(patternSet)))
+        with open(parseSet['outFile'], 'w+') as outfile:
+            data = {'count':len(patternSet),
+                    'width':parseSet['width'],
+                    'height':parseSet['height'],
+                    'patterns':patternSet}
+            json.dump(data, outfile)
+        print("\n")
 
 

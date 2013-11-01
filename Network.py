@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # Network.py
 
+import time
 from trainingStrategy import TrainingStrategy
 from trainingStrategy import TrainingStrategyType
+from patternSet import PatternSet
 
 # Enum for Layer Type
 class NetLayerType:
@@ -36,20 +38,23 @@ class Net:
         startTime = time.time()
         nextGenRequired = True
         while nextGenRequired:
-        for i in range(startIndex, endIndex):
-            self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
-            self.layers[NetLayerType.Input].feedForward()
-            if mode == PatternType.Train:
-                if trainingStrategy.atLastMember():
-                    if trainingStrategy.strategy == TrainingStrategyType.MLP:
-                        # do backprop
-                        # self.layers[-1].backProp()
-                    else:
-                        nextGenRequired = trainingStrategy.continueToNextGeneration()
+            for i in range(startIndex, endIndex):
+                self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
+                self.layers[NetLayerType.Input].feedForward()
+                if mode == PatternType.Train:
+                    if trainingStrategy.atLastMember():
+                        if trainingStrategy.strategy == TrainingStrategyType.MLP:
+                            # do backprop
+                            self.layers[-1].backPropagation(self.patternSet.targetVector(patterns[i]['t']))
+                        trainingStrategy.continueToNextGeneration()
+                        nextGenRequired = not trainingStrategy.fitnessThresholdMet()
                 else:
-                    nextGenRequired = True
-            else:
-                self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[NetLayerType.Output].getOutputs())
+                    self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[-1].getOutputs())
+                    if trainingStrategy.atLastMember():
+                        nextGenRequired = False
+        endTime = time.time()
+        print("Run Time: [" + str(endTime-startTime) + "sec]")
+                
 
 
 #Layers are of types Input Hidden and Output.  
@@ -139,4 +144,15 @@ class Neuron:
 
     def setWeights(self):
         return Neuron.setWeights(self.id)
+
+
     
+#Main
+if __name__=="__main__":
+    trainPercentage = 0.8
+    p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 10992 @ 1x16 # same as above
+    n = Net(p)
+    n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+    n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+    p.printConfusionMatrix()
+    print("Done")

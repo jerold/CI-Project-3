@@ -68,20 +68,20 @@ class TrainingStrategy(object):
         self.population[self.currentMember].adjustFitness(error)
         return 0
 
-    def continueToNextGeneration(self):
+    def fitnessThresholdMet(self):
         if self.evaluateFitness() > self.fitnessThreshold:
-
-            self.select()
-            self.crossover()
-            self.mutate()
-            self.repopulate()
-
-            self.resetPopulationFitness()
-            self.generation = self.generation + 1
-            self.currentMember = 0
             return True
-        else:
-            return False
+        return False
+
+    def continueToNextGeneration(self):
+        self.select()
+        self.crossover()
+        self.mutate()
+        self.repopulate()
+
+        self.resetPopulationFitness()
+        self.generation = self.generation + 1
+        self.currentMember = 0
 
     def initPopulation(self, pop, gRange, sParams, sMax):
         self.population = []

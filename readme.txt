@@ -1,1 +1,1 @@
-http://archive.ics.edu/ml/datasets.html
+http://archive.ics.uci.edu/ml/datasets.html

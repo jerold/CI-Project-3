@@ -141,7 +141,7 @@ class Network:
         for j, neuron in enumerate(self.layers[-1].neurons):
             output[j] = neuron.output
         if not train:
-            print output
+            print(output)
 
     def calculateConvError(self, input):
         error = 0
