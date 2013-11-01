@@ -93,10 +93,10 @@ class TrainingStrategy(object):
         for member in self.population:
             member.fitness = 0.0
 
-    def getWeightsForNeuron(self, neuronNumber):
+    def getCurrentMemberWeightsForNeuron(self, neuronNumber):
         return self.population[self.currentMember].getGenesAtPosition(neuronNumber)
 
-    def setWeightsForNeuron(self, neuronNumber, weights):
+    def setCurrentMemberWeightsForNeuron(self, neuronNumber, weights):
         return self.population[self.currentMember].setGenesAtPosition(neuronNumber, weights)
 
 
