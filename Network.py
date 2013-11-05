@@ -2,8 +2,10 @@
 # Network.py
 
 import time
-from trainingStrategy import TrainingStrategy
-from trainingStrategy import TrainingStrategyType
+import trainingStrategy as TS
+# from trainingStrategy import Member
+# from trainingStrategy import TrainingStrategy
+# from trainingStrategy import TrainingStrategyType
 from patternSet import PatternSet
 import math
 
@@ -18,11 +20,40 @@ class NetLayerType:
             self.Hidden:"H",
             self.Output:"O"}[x]
 
+# Enum for Pattern Type ( Also used as Net running Mode)
+class PatternType:
+    Train, Test, Validate = range(3)
 
-    
+    @classmethod
+    def desc(self, x):
+        return {
+            self.Train:"Train",
+            self.Test:"Test",
+            self.Validate:"Validate"}[x]
+
+
+
+
+# combined sum of the difference between two vectors
+def outputError(p, q):
+    errSum = 0.0
+    for i in range(len(p)):
+        errSum = errSum + math.fabs(p[i] - q[i])
+    return errSum
+
+def vectorizeMatrix(p):
+    if isinstance(p[0], list):
+        v = []
+        for i in p:
+            v = v + i
+        return v
+    else:
+        return p
+
+
+
 class Net:
-    def __init__(self, patternSet, hiddenArch, trainingStrategyType):
-        Net.trainingStrategy = TrainingStrategy.getTrainingStrategyOfType(trainingStrategyType)
+    def __init__(self, patternSet, hiddenArch):
         self.layers = [Layer(NetLayerType.Input, None, patternSet.inputMagnitude())]
         for elem in hiddenArch:
             self.layers.append(Layer(NetLayerType.Hidden, self.layers[-1], elem))
@@ -37,22 +68,25 @@ class Net:
         patterns = self.patternSet.patterns
         print("Mode[" + PatternType.desc(mode) + ":" + str(endIndex - startIndex) + "]")
         startTime = time.time()
-        nextGenRequired = True
-        while nextGenRequired:
+
+        if mode == PatternType.Train:
+            while not Net.trainingStrategy.fitnessThresholdMet():
+                while Net.trainingStrategy.moreMembers():
+                    for i in range(startIndex, endIndex):
+                        # Run each Pattern Through each member configuration, updating member weights with each pass
+                        print("G[" + str(Net.trainingStrategy.generation) + " M[" + str(Net.trainingStrategy.currentMember) + "] P:[" + str(i) + "]")
+
+                        self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
+                        self.layers[NetLayerType.Input].feedForward()
+                        Net.trainingStrategy.updateMemberFitness(outputError(patterns[i]['t'], self.layers[-1].getOutputs()))
+                    Net.trainingStrategy.continueToNextMember()
+                Net.trainingStrategy.continueToNextGeneration()
+        else:
             for i in range(startIndex, endIndex):
                 self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
                 self.layers[NetLayerType.Input].feedForward()
-                if mode == PatternType.Train:
-                    if trainingStrategy.atLastMember():
-                        if trainingStrategy.strategy == TrainingStrategyType.MLP:
-                            # do backprop
-                            self.layers[-1].backPropagation(self.patternSet.targetVector(patterns[i]['t']))
-                        trainingStrategy.continueToNextGeneration()
-                        nextGenRequired = not trainingStrategy.fitnessThresholdMet()
-                else:
-                    self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[-1].getOutputs())
-                    if trainingStrategy.atLastMember():
-                        nextGenRequired = False
+                self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[-1].getOutputs())
+
         endTime = time.time()
         print("Run Time: [" + str(endTime-startTime) + "sec]")
                 
@@ -93,21 +127,22 @@ class Layer:
     def feedForward(self):
         if self.layerType == NetLayerType.Input:
             # Input Layer feeds all input to output with no work done
-            for n, neuron in enumerate(self.neurons):
+            # for n, neuron in enumerate(self.neurons):
                 # Do work
-                print("FF Neuron in Input Layer")
+                # print("FF Neuron in Input Layer")
             self.next.feedForward()
         elif self.layerType == NetLayerType.Hidden:
             # RBF on the Euclidian Norm of input to center
-            for n, neuron in enumerate(self.neurons):
+            # for n, neuron in enumerate(self.neurons):
                 # Do work
-                print("FF Neuron in Hidden Layer")
+                # print("FF Neuron in Hidden Layer")
             self.next.feedForward()
-        elif self.layerType == NetLayerType.Output:
+        # elif self.layerType == NetLayerType.Output:
             # Linear Combination of Hidden layer outputs and associated weights
-            for n, neuron in enumerate(self.neurons):
+            # for n, neuron in enumerate(self.neurons):
                 # Do work
-                print("FF Neuron in Output Layer")
+                # print("FF Neuron in Output Layer")
+
 
     # Output Format
     def __str__(self):
@@ -124,31 +159,35 @@ class Layer:
 # in the layer as function of the neuron is tied to the layer it is contained in
 class Neuron:
     idIterator = 0
+    inputNeuronCount = 0
     
     def __init__(self, layer):
+        if layer.layerType == NetLayerType.Input:
+            Neuron.inputNeuronCount = Neuron.inputNeuronCount + 1
         self.id = Neuron.idIterator
+        Neuron.idIterator = Neuron.idIterator + 1
+
+        # print("Neuron[" + str(self.id) + "]")
         self.layer = layer
         self.input = 0.00
         self.output = 0.00
         self.weightDeltas = []
         if layer.prev:
-            weights = Net.trainingStrategy.getCurrentMemberWeightsForNeuron(self.id)
+            weights = self.getMyWeights()
             for w, weight in enumerate(weights):
                 self.weightDeltas.append(0.0)
-        Neuron.idIterator += 1
 
     @classmethod
-    def getWeights(neuronNumber):
-        return Net.trainingStrategy.getCurrentMemberWeightsForNeuron(neuronNumber)
+    def getWeights(self, neuronNumber):
+        if neuronNumber-Neuron.inputNeuronCount < 0:
+            raise("I pitty the fool who tries to get weights for an input neuron.")
+        # print("Weights for [" + str(neuronNumber) + ":" + str(neuronNumber-Neuron.inputNeuronCount) + "]")
+        # print(Net.trainingStrategy.getCurrentMemberWeightsForNeuron(neuronNumber-Neuron.inputNeuronCount))
+        return Net.trainingStrategy.getCurrentMemberWeightsForNeuron(neuronNumber-Neuron.inputNeuronCount)
 
-    def getWeights(self):
+    def getMyWeights(self):
+        """Method returns a dictionary containing the 'genes' vector, and strategy parameters' vector (if applicable)"""
         return Neuron.getWeights(self.id)
-
-    def setWeights(neuronNumber):
-        return Net.trainingStrategy.setCurrentMemberWeightsForNeuron(neuronNumber)
-
-    def setWeights(self):
-        return Neuron.setWeights(self.id)
 
 
     
@@ -158,7 +197,8 @@ if __name__=="__main__":
     attributeNeuronMultiplier = 2
     populationSize = 10
     
-    p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 10992 @ 1x16 # same as above
+    p = PatternSet('data/adult/adult.json', trainPercentage)        # 10992 @ 1x16 # same as above
+
 
     print("Weight Architecture:")
     hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
@@ -169,12 +209,13 @@ if __name__=="__main__":
         print("[" + str(hiddenArchitecture[h-1]) + "]x" + str(hiddenArchitecture[h]))
     genomeTemplate = genomeTemplate + list([hiddenArchitecture[-1] for _ in range(len(p.targets))])
     print("[" + str(hiddenArchitecture[-1]) + "]x" + str(len(p.targets)))
-    print(genomeTemplate)
-    
-    n = Net(p, hiddenArchitecture, TrainingStrategyType.GeneticAlgorithm)
-    Member.genomeTemplate = genomeTemplate
-    Net.trainingStrategy.initPopulation(populationSize, range(-0.3, 0.3), False, 0)
-    
+
+
+    TS.Member.genomeTemplate = genomeTemplate
+    Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
+    Net.trainingStrategy.initPopulation(populationSize, (-0.3, 0.3), False, 0)
+        
+    n = Net(p, hiddenArchitecture)
     n.run(PatternType.Train, 0, int(p.count*trainPercentage))
     n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
     p.printConfusionMatrix()

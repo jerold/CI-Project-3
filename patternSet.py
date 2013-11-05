@@ -39,7 +39,6 @@ def printPatterns(pattern):
     else:
         print(', '.join(str(round(x, 3)) for x in pattern))
 
-
 # A Pattern set contains sets of 3 types of patterns
 # and can be used to retrieve only those patterns of a certain type
 class PatternSet:

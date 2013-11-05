@@ -21,9 +21,9 @@ class Member():
     genomeTemplate = [] # example [3, 3, 3, 3, 4, 4] Input layer has 3 nodes, Hidden has 4, output has 2
 
     def __init__(self, geneMin, geneMax, includeStrategyParameters, strategyMax):
-        self.genome = [[float(random.randrange(geneMin, geneMax)) for _ in range(n)] for n in Member.genomeTemplate]
+        self.genome = [[float(random.randrange(geneMin*10000, geneMax*10000))/10000 for _ in range(n)] for n in Member.genomeTemplate]
         if includeStrategyParameters:
-            self.genome = self.genome + [[float(random.randrange(strategyMax)) for _ in range(n)] for n in Member.genomeTemplate]
+            self.genome = self.genome + [[float(random.randrange(strategyMax*10000))/10000 for _ in range(n)] for n in Member.genomeTemplate]
         self.fitness = 0.0
 
     def adjustFitness(self, value):
@@ -50,9 +50,10 @@ class TrainingStrategy(object):
         self.currentMember = 0
         self.fitnessThreshold = 10
         self.population = []
+        self.alphas = []
 
     @classmethod
-    def getTrainingStrategyOfType(self, type):
+    def getTrainingStrategyOfType(self, type=3):
         if type == TrainingStrategyType.EvolutionStrategy:
             return EvolutionStrategy()
         elif type == TrainingStrategyType.GeneticAlgorithm:
@@ -60,12 +61,7 @@ class TrainingStrategy(object):
         elif type == TrainingStrategyType.DifferentialGA:
             return DifferentialGA()
 
-    def atLastMember(self):
-        if self.currentMember+1 ==  len(self.population):
-            return True
-        return False
-
-    def updateFitness(self, error):
+    def updateMemberFitness(self, error):
         self.population[self.currentMember].adjustFitness(error)
         return 0
 
@@ -73,6 +69,14 @@ class TrainingStrategy(object):
         if self.evaluateFitness() > self.fitnessThreshold:
             return True
         return False
+
+    def moreMembers(self):
+        if self.currentMember < len(self.population):
+            return True
+        return False
+
+    def continueToNextMember(self):
+        self.currentMember = self.currentMember + 1
 
     def continueToNextGeneration(self):
         parents = self.select()
@@ -88,6 +92,9 @@ class TrainingStrategy(object):
         self.population = []
         for p in range(pop):
             self.population.append(Member(gRange[0], gRange[-1], sParams, sMax))
+        print("Member Genome Sample:")
+        print("[" + ", ".join("[" + str(len(a)) + "]" for a in self.population[0].genome) + "]")
+        # print("[" + ", ".join("[" + " ".join(str(b) for b in a) + "]" for a in self.population[0].genome) + "]")
         self.currentMember = 0
 
     def mutation(self):
@@ -205,6 +212,8 @@ class GeneticAlgorithm(TrainingStrategy):
         self.population.append(bestFitMember)
         self.population.append(nextFitMember)
 
+
+
 class DifferentialGA(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -226,19 +235,19 @@ class DifferentialGA(TrainingStrategy):
         return 0
 
 
-if __name__=="__main__":
-    ts = TrainingStrategy.getTrainingStrategyOfType(TrainingStrategyType.GeneticAlgorithm)
-    Member.genomeTemplate = [3, 3, 3, 3, 4, 4]
-    memberCount = 10
-    ts.initPopulation(10, range(-5, 5), True, memberCount)
-    for i in range(memberCount):
-        print(ts.population[i].genome)
-    print(ts.getCurrentMemberWeightsForNeuron(1))
-    ts.setCurrentMemberWeightsForNeuron(1, [0.0, 1.1, 2.2])
-    print(ts.getCurrentMemberWeightsForNeuron(1))
-    ts.population[0].adjustFitness(4.50)
-    ts.population[0].adjustFitness(5.50)
-    print(ts.population[0].fitness)
+# if __name__=="__main__":
+#     ts = TrainingStrategy.getTrainingStrategyOfType(TrainingStrategyType.GeneticAlgorithm)
+#     Member.genomeTemplate = [3, 3, 3, 3, 4, 4]
+#     memberCount = 10
+#     ts.initPopulation(10, range(-5, 5), True, memberCount)
+#     for i in range(memberCount):
+#         print(ts.population[i].genome)
+#     print(ts.getCurrentMemberWeightsForNeuron(1))
+#     ts.setCurrentMemberWeightsForNeuron(1, [0.0, 1.1, 2.2])
+#     print(ts.getCurrentMemberWeightsForNeuron(1))
+#     ts.population[0].adjustFitness(4.50)
+#     ts.population[0].adjustFitness(5.50)
+#     print(ts.population[0].fitness)
 
 
 

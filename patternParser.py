@@ -31,9 +31,9 @@ adult = {'inFiles':['data/adult/adult.data'],
 
 def parseAdult(lines):
     patSet = []
-    attributes = [[] for _ in range(15)]
+    attributes = [[] for _ in range(14)]
     attributesAlt = [{'continuous':True},
-                     {'Private':7, 'Self-emp-not-inc':5, 'Self-emp-inc':6, 'Federal-gov':4, 'Local-gov':2, 'State-gov':3, 'Without-pay':1, 'Never-worked':0, 'continuous':False},
+                     {'Private':8, 'Self-emp-not-inc':6, 'Self-emp-inc':7, 'Federal-gov':5, 'Local-gov':3, 'State-gov':4, 'Without-pay':2, 'Never-worked':1, '?':7, 'continuous':False},
                      {'continuous':True},
                      {'Bachelors':12, 'Some-college':8, '11th':5, 'HS-grad':7, 'Prof-school':9, 'Assoc-acdm':10, 'Assoc-voc':11, '9th':3, '7th-8th':2, '12th':6, 'Masters':13, '1st-4th':1, '10th':4, 'Doctorate':14, '5th-6th':2, 'Preschool':0, 'continuous':False},
                      {'continuous':True},
@@ -45,14 +45,13 @@ def parseAdult(lines):
                      {'continuous':True},
                      {'continuous':True},
                      {'continuous':True},
-                     {"United-States":0, "Cambodia":1, "England":2, "Puerto-Rico":3, "Canada":4, "Germany":5, "Outlying-US(Guam-USVI-etc)":6, "India":7, "Japan":8, "Greece":9, "South":10, "China":11, "Cuba":12, "Iran":13, "Honduras":14, "Philippines":15, "Italy":16, "Poland":17, "Jamaica":18, "Vietnam":19, "Mexico":20, "Portugal":21, "Ireland":22, "France":23, "Dominican-Republic":24, "Laos":25, "Ecuador":26, "Taiwan":27, "Haiti":28, "Columbia":29, "Hungary":30, "Guatemala":31, "Nicaragua":32, "Scotland":33, "Thailand":34, "Yugoslavia":35, "El-Salvador":36, "Trinadad&Tobago":37, "Peru":38, "Hong":39, "Holand-Netherlands":40, "?":0, 'continuous':False}]
+                     {"United-States":1, "Cambodia":2, "England":3, "Puerto-Rico":4, "Canada":5, "Germany":6, "Outlying-US(Guam-USVI-etc)":7, "India":8, "Japan":9, "Greece":10, "South":11, "China":12, "Cuba":13, "Iran":14, "Honduras":15, "Philippines":16, "Italy":17, "Poland":18, "Jamaica":19, "Vietnam":20, "Mexico":21, "Portugal":22, "Ireland":23, "France":24, "Dominican-Republic":25, "Laos":26, "Ecuador":27, "Taiwan":28, "Haiti":29, "Columbia":30, "Hungary":31, "Guatemala":32, "Nicaragua":33, "Scotland":34, "Thailand":35, "Yugoslavia":36, "El-Salvador":37, "Trinadad&Tobago":38, "Peru":39, "Hong":40, "Holand-Netherlands":41, "?":1, 'continuous':False}]
     targets = []
     targetsAlt = {'>50K':1, '<=50K':2}
-    for line in lines:
+    for l, line in enumerate(lines):
         line = line.split('\n')[0]
         line = line.split(', ')
         pattern = line[:len(line)-1]
-        print(line)
         for i, elem in enumerate(pattern):
             if attributesAlt[i]['continuous']:
                 pattern[i] = elem
@@ -62,12 +61,15 @@ def parseAdult(lines):
         patternTarget = targetsAlt[line[-1]]
         patSet.append({'p':pattern, 't':patternTarget})
         targets.append(patternTarget)
-        print('p:' + str(pattern) + '  t:' + str(patternTarget))
+        # print(str(l) + ' p:' + str(pattern) + '  t:' + str(patternTarget))
     print("Targets")
     print(set(targets))
     print("Attributes")
-    for attribute in attributes:
-        print(set(attribute))
+    for a, attribute in enumerate(attributes):
+        if not attributesAlt[a]['continuous']:
+            print(str(a) + " S:" + str(set(attribute)))
+        else:
+            print(str(a) + " L:" + str(len(set(attribute))))
     return patSet
 
 
@@ -345,7 +347,7 @@ if __name__=="__main__":
                 fileLines = file.readlines()
                 for line in fileLines:
                     lines.append(line)
-        print(parseSet['inFiles'][0])
+        # print(parseSet['inFiles'][0])
         
         if parseSet['outFile'] == pageBlock['outFile']:
             patternSet = parseBlock(lines)
@@ -356,7 +358,7 @@ if __name__=="__main__":
         elif parseSet['outFile'] == adult['outFile']:
             patternSet = parseAdult(lines)
             
-        print("pats: " + str(len(patternSet)))
+        # print("pats: " + str(len(patternSet)))
         with open(parseSet['outFile'], 'w+') as outfile:
             data = {'count':len(patternSet),
                     'width':parseSet['width'],
