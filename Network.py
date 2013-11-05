@@ -21,10 +21,10 @@ class NetLayerType:
     
 class Net:
     def __init__(self, patternSet, hiddenArch, trainingStrategyType):
-        trainingStrategy = TrainingStrategy.getTrainingStrategyOfType(trainingStrategyType)
-        self.layers.append(Layer(NetLayerType.Input, None, patternSet.inputMagnitude()))
+        Net.trainingStrategy = TrainingStrategy.getTrainingStrategyOfType(trainingStrategyType)
+        self.layers = [Layer(NetLayerType.Input, None, patternSet.inputMagnitude())]
         for elem in hiddenArch:
-            self.layer.append(Layer(NetLayerType.Hidden, self.layers[-1], elem))
+            self.layers.append(Layer(NetLayerType.Hidden, self.layers[-1], elem))
         self.layers.append(Layer(NetLayerType.Output, self.layers[-1], patternSet.outputMagnitude()))
         self.patternSet = patternSet
         self.absError = 100
@@ -59,7 +59,7 @@ class Net:
 
 #Layers are of types Input Hidden and Output.  
 class Layer:
-    def __init__(self, layerType, prevLayer, neuronCount, trainingStrategy):
+    def __init__(self, layerType, prevLayer, neuronCount):
         self.layerType = layerType
         self.prev = prevLayer
         if prevLayer != None:
@@ -150,8 +150,26 @@ class Neuron:
 #Main
 if __name__=="__main__":
     trainPercentage = 0.8
+    attributeNeuronMultiplier = 2
+    populationSize = 10
+    
     p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 10992 @ 1x16 # same as above
-    n = Net(p)
+
+    print("Weight Architecture:")
+    hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
+    genomeTemplate = [len(p.patterns[0]['p']) for _ in range(len(p.patterns[0]['p'])*attributeNeuronMultiplier)]
+    print("[" + str(len(p.patterns[0]['p'])) + "]x" + str(len(p.patterns[0]['p'])*attributeNeuronMultiplier))
+    for h in range(1, len(hiddenArchitecture)):
+        genomeTemplate = genomeTemplate + list([hiddenArchitecture[h-1] for _ in range(hiddenArchitecture[h])])
+        print("[" + str(hiddenArchitecture[h-1]) + "]x" + str(hiddenArchitecture[h]))
+    genomeTemplate = genomeTemplate + list([hiddenArchitecture[-1] for _ in range(len(p.targets))])
+    print("[" + str(hiddenArchitecture[-1]) + "]x" + str(len(p.targets)))
+    print(genomeTemplate)
+    
+    n = Net(p, hiddenArchitecture, TrainingStrategyType.GeneticAlgorithm)
+    Member.genomeTemplate = genomeTemplate
+    Net.trainingStrategy.initPopulation(populationSize, range(-0.3, 0.3), False, 0)
+    
     n.run(PatternType.Train, 0, int(p.count*trainPercentage))
     n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
     p.printConfusionMatrix()
