@@ -5,6 +5,7 @@ import time
 from trainingStrategy import TrainingStrategy
 from trainingStrategy import TrainingStrategyType
 from patternSet import PatternSet
+import math
 
 # Enum for Layer Type
 class NetLayerType:
@@ -55,7 +56,11 @@ class Net:
         endTime = time.time()
         print("Run Time: [" + str(endTime-startTime) + "sec]")
                 
-
+    def calculateConvError(self, input):
+        error = 0
+        for i, neuron in enumerate(self.layers[-1].neurons):
+            error += abs(input[i] - neuron.output)
+        return error
 
 #Layers are of types Input Hidden and Output.  
 class Layer:

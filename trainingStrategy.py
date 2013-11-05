@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
 import random
+import math
+import patternSet
+import Network
 
 class TrainingStrategyType:
     EvolutionStrategy, GeneticAlgorithm, DifferentialGA = range(3)
@@ -12,7 +15,6 @@ class TrainingStrategyType:
         return {self.EvolutionStrategy: "EvolutionStrategy",
                 self.GeneticAlgorithm: "GeneticAlgorithm",
                 self.DifferentialGA: "DifferentialGA"}[x]
-
 
 
 class Member():
@@ -74,12 +76,12 @@ class TrainingStrategy(object):
 
     def continueToNextGeneration(self):
         parents = self.select()
-        self.crossover(parents)
-        self.mutate()
-        self.repopulate()
+        child = self.crossover(parents)
+        child = self.mutate(child)
+        self.repopulate(parents + child)
 
         self.resetPopulationFitness()
-        self.generation = self.generation + 1
+        self.generation += self.generation
         self.currentMember = 0
 
     def initPopulation(self, pop, gRange, sParams, sMax):
@@ -89,11 +91,18 @@ class TrainingStrategy(object):
         self.currentMember = 0
 
     def mutation(self):
-        numberOfElements = 0
-        member = population[0]
-        for gene in member:
-            numberOfElements += 1
-        probability = 1 \ float(numberOfElements)
+        member = self.population[0]
+        numberOfElements = len(member) * len(member[0])
+        probability = 1 / float(numberOfElements)
+        elem = random.random(0,numberOfElements) * probability
+        choice = random.uniform(0, 1)
+        diff = math.abs(elem - choice)
+        if diff > probability:
+            return False
+        return True
+
+    def epsilon(self):
+        return 0.15
 
     def resetPopulationFitness(self):
         for member in self.population:
@@ -104,7 +113,6 @@ class TrainingStrategy(object):
 
     def setCurrentMemberWeightsForNeuron(self, neuronNumber, weights):
         return self.population[self.currentMember].setGenesAtPosition(neuronNumber, weights)
-
 
     def select(self):
         raise("Instance of an Abstract Class... Bad Juju!")
@@ -166,18 +174,36 @@ class GeneticAlgorithm(TrainingStrategy):
                     child.append(parent1[j])
                 else:
                     child.append(parent2[j])
+        return child
 
-    def mutate(self):
-        if mutation:
+    def mutate(self, child):
+        for gene in child:
+            for elem in gene:
+                if self.mutation():
+                    if random.choice([True, False]):
+                        elem += self.epsilon()
+                    else:
+                        elem -= self.epsilon()
+        return child
 
+    def evaluateFitness(self, child):
+        fitness = 0
+        for pattern in patternSet.patterns:
+            Network.Layer.setInputs(Network.Net[0], pattern['p'])
+            Network.Layer.feedforward(Network.Net[0])
+            fitness += Network.Net.calculateConvError(Network.Net, pattern['t'])
+        child.fitness = fitness
 
-    def evaluateFitness(self):
-        return 0
-
-    def repopulate(self):
-        return 0
-
-
+    def repopulate(self, contendors):
+        bestFit = 0
+        nextFit = 0
+        for member in contendors:
+            if member.fitness > bestFit:
+                bestFitMember = member
+            elif member.fitness > nextFit:
+                nextFitMember = member
+        self.population.append(bestFitMember)
+        self.population.append(nextFitMember)
 
 class DifferentialGA(TrainingStrategy):
     def __init__(self):
