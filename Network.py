@@ -3,14 +3,11 @@
 
 import time
 import trainingStrategy as TS
-# from trainingStrategy import Member
-# from trainingStrategy import TrainingStrategy
-# from trainingStrategy import TrainingStrategyType
 from patternSet import PatternSet
 import math
 
-# Enum for Layer Type
 class NetLayerType:
+    """Enum for Layer Type"""
     Input, Hidden, Output = range(3)
 
     @classmethod
@@ -20,8 +17,8 @@ class NetLayerType:
             self.Hidden:"H",
             self.Output:"O"}[x]
 
-# Enum for Pattern Type ( Also used as Net running Mode)
 class PatternType:
+    """Enum for Pattern Type ( Also used as Net running Mode)"""
     Train, Test, Validate = range(3)
 
     @classmethod
@@ -32,16 +29,19 @@ class PatternType:
             self.Validate:"Validate"}[x]
 
 
+def sigmoidal(parameter):
+    """Activation Funtion used by the Neurons during feed forward"""
+    return math.tanh(parameter)
 
-
-# combined sum of the difference between two vectors
 def outputError(p, q):
+    """Combined sum of the difference between two vectors"""
     errSum = 0.0
     for i in range(len(p)):
         errSum = errSum + math.fabs(p[i] - q[i])
     return errSum
 
 def vectorizeMatrix(p):
+    """Turns a 2D matrix into a vector by appending the rows to one another"""
     if isinstance(p[0], list):
         v = []
         for i in p:
@@ -71,14 +71,16 @@ class Net:
 
         if mode == PatternType.Train:
             while not Net.trainingStrategy.fitnessThresholdMet():
+                print("Generation[" + str(Net.trainingStrategy.generation) + "]")
                 while Net.trainingStrategy.moreMembers():
+                    self.layers[NetLayerType.Input].fetchNeuronWeightsForCurrentMember()
                     for i in range(startIndex, endIndex):
+                        # print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] P[" + str(i) + "]")
                         # Run each Pattern Through each member configuration, updating member weights with each pass
-                        print("G[" + str(Net.trainingStrategy.generation) + " M[" + str(Net.trainingStrategy.currentMember) + "] P:[" + str(i) + "]")
-
                         self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
                         self.layers[NetLayerType.Input].feedForward()
-                        Net.trainingStrategy.updateMemberFitness(outputError(patterns[i]['t'], self.layers[-1].getOutputs()))
+                        Net.trainingStrategy.updateMemberFitness(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs()))
+                    print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness) + "]")
                     Net.trainingStrategy.continueToNextMember()
                 Net.trainingStrategy.continueToNextGeneration()
         else:
@@ -95,6 +97,8 @@ class Net:
         for i, neuron in enumerate(self.layers[-1].neurons):
             error += abs(input[i] - neuron.output)
         return error
+
+
 
 #Layers are of types Input Hidden and Output.  
 class Layer:
@@ -113,7 +117,7 @@ class Layer:
         if len(inputVector) != len(self.neurons):
             raise NameError('Input dimension of network does not match that of pattern!')
         for p in range(len(self.neurons)):
-            self.neurons[p].input = inputVector[p]
+            self.neurons[p].input = float(inputVector[p])
 
     #return a vector of this Layer's Neuron outputs
     def getOutputs(self):
@@ -122,35 +126,41 @@ class Layer:
             out.append(neuron.output)
         return out
 
+    def fetchNeuronWeightsForCurrentMember(self):
+        if self.prev:
+            for neuron in self.neurons:
+                neuron.weights = neuron.getMyWeights()['genes']
+        if self.next:
+            self.next.fetchNeuronWeightsForCurrentMember()
+
+
     # Each Layer has a link to the next link in order.  Input values are translated from
     # input to output in keeping with the Layer's function
     def feedForward(self):
         if self.layerType == NetLayerType.Input:
             # Input Layer feeds all input to output with no work done
-            # for n, neuron in enumerate(self.neurons):
-                # Do work
-                # print("FF Neuron in Input Layer")
+            for neuron in self.neurons:
+                neuron.output = neuron.input
             self.next.feedForward()
         elif self.layerType == NetLayerType.Hidden:
             # RBF on the Euclidian Norm of input to center
-            # for n, neuron in enumerate(self.neurons):
-                # Do work
-                # print("FF Neuron in Hidden Layer")
+            prevOutputs = self.prev.getOutputs()
+            for neuron in self.neurons:
+                neuron.inputSum = 0.0
+                for weight in neuron.weights:
+                    for output in prevOutputs:
+                        neuron.inputSum = neuron.inputSum + output * weight
+                neuron.output = neuron.activate(neuron.inputSum)
             self.next.feedForward()
-        # elif self.layerType == NetLayerType.Output:
+        elif self.layerType == NetLayerType.Output:
             # Linear Combination of Hidden layer outputs and associated weights
-            # for n, neuron in enumerate(self.neurons):
-                # Do work
-                # print("FF Neuron in Output Layer")
-
-
-    # Output Format
-    def __str__(self):
-        out = "  " + NetLayerType.desc(self.layerType) + "["
-        for neuron in self.neurons:
-            out = out + str(neuron)
-        out = out + "]\n"
-        return out
+            prevOutputs = self.prev.getOutputs()
+            for neuron in self.neurons:
+                neuron.inputSum = 0.0
+                for weight in neuron.weights:
+                    for output in prevOutputs:
+                        neuron.inputSum = neuron.inputSum + output * weight
+                neuron.output = neuron.inputSum
 
 
 
@@ -171,10 +181,11 @@ class Neuron:
         self.layer = layer
         self.input = 0.00
         self.output = 0.00
+        self.weights = []
         self.weightDeltas = []
         if layer.prev:
-            weights = self.getMyWeights()
-            for w, weight in enumerate(weights):
+            self.weights = self.getMyWeights()['genes']
+            for w, weight in enumerate(self.weights):
                 self.weightDeltas.append(0.0)
 
     @classmethod
@@ -189,6 +200,9 @@ class Neuron:
         """Method returns a dictionary containing the 'genes' vector, and strategy parameters' vector (if applicable)"""
         return Neuron.getWeights(self.id)
 
+    def activate(self, inputSum):
+        return sigmoidal(inputSum)
+
 
     
 #Main
@@ -197,7 +211,8 @@ if __name__=="__main__":
     attributeNeuronMultiplier = 2
     populationSize = 10
     
-    p = PatternSet('data/adult/adult.json', trainPercentage)        # 10992 @ 1x16 # same as above
+    # p = PatternSet('data/adult/adult.json', trainPercentage)        # Train:26048 @ 1x16 # same as above
+    p = PatternSet('data/car/car.json', trainPercentage)            # Train:1382 @ 1x16 # same as above
 
 
     print("Weight Architecture:")

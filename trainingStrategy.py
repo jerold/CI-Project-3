@@ -50,7 +50,8 @@ class TrainingStrategy(object):
         self.currentMember = 0
         self.fitnessThreshold = 10
         self.population = []
-        self.alphas = []
+        self.populationSize = 0
+        self.alphas = [] # a list of the best members from each generation current best is [-1]
 
     @classmethod
     def getTrainingStrategyOfType(self, type=3):
@@ -66,7 +67,9 @@ class TrainingStrategy(object):
         return 0
 
     def fitnessThresholdMet(self):
-        if self.evaluateFitness() > self.fitnessThreshold:
+        if len(self.alphas) < 1:
+            return False
+        if self.alphas[-1].fitness < self.fitnessThreshold:
             return True
         return False
 
@@ -89,6 +92,7 @@ class TrainingStrategy(object):
         self.currentMember = 0
 
     def initPopulation(self, pop, gRange, sParams, sMax):
+        self.populationSize = pop
         self.population = []
         for p in range(pop):
             self.population.append(Member(gRange[0], gRange[-1], sParams, sMax))
@@ -109,31 +113,39 @@ class TrainingStrategy(object):
         return True
 
     def epsilon(self):
+        """epsilon"""
         return 0.15
 
     def resetPopulationFitness(self):
+        """Between each generation fitness is reset"""
         for member in self.population:
             member.fitness = 0.0
 
     def getCurrentMemberWeightsForNeuron(self, neuronNumber):
+        """Get method Neurons use to fetch their coorisponding weights from the current member's genome"""
         return self.population[self.currentMember].getGenesAtPosition(neuronNumber)
 
     def setCurrentMemberWeightsForNeuron(self, neuronNumber, weights):
+        """Set method Neurons use to change their coorisponding weights within the current member's genome"""
         return self.population[self.currentMember].setGenesAtPosition(neuronNumber, weights)
 
     def select(self):
+        """Returns a list of parents chosen for crossover"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
     def crossover(self):
+        """Returns a list of newly minted children"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
     def mutate(self):
+        """Go through all members of the population mutating at chance"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
     def evaluateFitness(self):
         raise("Instance of an Abstract Class... Bad Juju!")
 
     def repopulate(self):
+        """Given the current population and the population of children, combine to produce the next Generation"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
 
@@ -170,6 +182,7 @@ class GeneticAlgorithm(TrainingStrategy):
         return random.sample(self.population, 2)
 
     def crossover(self, parents):
+        """For the """
         child = []
         i = 0
         while i < len(parents[0]):
