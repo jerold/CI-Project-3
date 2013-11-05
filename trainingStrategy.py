@@ -3,14 +3,13 @@
 import random
 
 class TrainingStrategyType:
-    MLP, EvolutionStrategy, GeneticAlgorithm, DifferentialGA = range(4)
+    EvolutionStrategy, GeneticAlgorithm, DifferentialGA = range(3)
 
     @classmethod
     def desc(self, x):
-        if x == 4:
+        if x == 3:
             raise("Instance of an Abstract Class... Bad Juju!")
-        return {self.MLP: "MLP",
-                self.EvolutionStrategy: "EvolutionStrategy",
+        return {self.EvolutionStrategy: "EvolutionStrategy",
                 self.GeneticAlgorithm: "GeneticAlgorithm",
                 self.DifferentialGA: "DifferentialGA"}[x]
 
@@ -45,14 +44,14 @@ class Member():
 class TrainingStrategy(object):
     def __init__(self):
         self.strategy = 4
-        self.generation = 1
+        self.generation = 0
+        self.currentMember = 0
         self.fitnessThreshold = 10
+        self.population = []
 
     @classmethod
     def getTrainingStrategyOfType(self, type):
-        if type == TrainingStrategyType.MLP:
-            return MLP()
-        elif type == TrainingStrategyType.EvolutionStrategy:
+        if type == TrainingStrategyType.EvolutionStrategy:
             return EvolutionStrategy()
         elif type == TrainingStrategyType.GeneticAlgorithm:
             return GeneticAlgorithm()
@@ -114,20 +113,6 @@ class TrainingStrategy(object):
 
     def repopulate(self):
         raise("Instance of an Abstract Class... Bad Juju!")
-
-
-
-class MLP(TrainingStrategy):
-    def __init__(self):
-        super(self.__class__, self).__init__()
-        self.strategy = TrainingStrategyType.MLP
-
-    def continueToNextGeneration(self):
-        self.generation = self.generation + 1
-        self.currentMember = 0
-
-    def updateFitness(self, target):
-        raise("Do not update fitness for MLP, have layers do backprop on their neurons")
 
 
 
@@ -197,13 +182,15 @@ class DifferentialGA(TrainingStrategy):
 
 
 if __name__=="__main__":
-    ts = TrainingStrategy.getTrainingStrategyOfType(TrainingStrategyType.MLP)
+    ts = TrainingStrategy.getTrainingStrategyOfType(TrainingStrategyType.GeneticAlgorithm)
     Member.genomeTemplate = [3, 3, 3, 3, 4, 4]
-    ts.initPopulation(10, range(-5, 5), True, 10)
-    print(ts.population[0].genome)
-    print(ts.getWeightsForNeuron(1))
-    ts.setWeightsForNeuron(1, [0.0, 1.1, 2.2])
-    print(ts.getWeightsForNeuron(1))
+    memberCount = 10
+    ts.initPopulation(10, range(-5, 5), True, memberCount)
+    for i in range(memberCount):
+        print(ts.population[i].genome)
+    print(ts.getCurrentMemberWeightsForNeuron(1))
+    ts.setCurrentMemberWeightsForNeuron(1, [0.0, 1.1, 2.2])
+    print(ts.getCurrentMemberWeightsForNeuron(1))
     ts.population[0].adjustFitness(4.50)
     ts.population[0].adjustFitness(5.50)
     print(ts.population[0].fitness)

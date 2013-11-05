@@ -5,130 +5,12 @@ import json
 import random
 import math
 
-# used in calculating Sigma based on center locations
-def euclidianDistance(p, q):
-    sumOfSquares = 0.0
-    if isinstance(p, list):
-        if isinstance(p[0], list):
-            for i in range(len(p)):
-                for j in range(len(p[i])):
-                    sumOfSquares = sumOfSquares + ((p[i][j]-q[i][j])*(p[i][j]-q[i][j]))
-        else:
-            for i in range(len(p)):
-                sumOfSquares = sumOfSquares + ((p[i]-q[i])*(p[i]-q[i]))
-    else:
-        sumOfSquares = sumOfSquares + ((p-q)*(p-q))
-    return math.sqrt(sumOfSquares)
-
-# Centers are built for each of the targets in two steps
-# First an average is built for each target from each pattern of that target type
-# Next we run k-means on the new centers against all patterns
-# Sigmas are calculated for each element
-def buildCentersAndSigmas(patterns):
-    centersTargets = {}
+def findUniqueTargets(patterns):
+    targets = []
     for pattern in patterns:
-        if pattern['t'] not in centersTargets:
-            centersTargets[pattern['t']] = []
-        centersTargets[pattern['t']].append(pattern)
-    centers = {}
-    sigmas = {}
-    print("Found " + str(len(centersTargets)) + " targets.")
-    print("Constructing Centers and Sigmas...")
-    # build center as mean of all trained k patterns, and sigma as standard deviation
-    for k in centersTargets.keys():
-        kPats = centersTargets[k]
-        centers[k] = buildMeanPattern(kPats)
-
-    # OPTIONAL k-MEANS CENTER SOFTENING --WINNER--
-    dist = 100
-    distDelta = 100
-    oldDist = 0
-    while dist > 1 and abs(distDelta) > 0.01:
-        tempCenters = adjustCenters(patterns, centers)
-        dist = 0
-        for k in centersTargets.keys():
-            dist = dist + euclidianDistance(centers[k], tempCenters[k])
-        centers = tempCenters
-        distDelta = dist - oldDist
-        oldDist = dist
-        #print("dist:" + str(round(dist, 4)) + ", delta:" + str(round(distDelta, 4)))
-
-    # #Build Sigmas for each space
-    for k in centersTargets.keys():
-        sigmas[k] = buildSigmaPattern(centers[k], kPats)
-
-    return {'centers':centers, 'sigmas':sigmas}
-
-# given several patterns we create an average pattern of the same dimension
-# This method works for 2D arrays, 1D arrays, and scalers
-def buildMeanPattern(patterns):
-    h = 0
-    w = len(patterns[0]['p'])
-    if isinstance(patterns[0]['p'][0], list):
-        h = len(patterns[0]['p'])
-        w = len(patterns[0]['p'][0])
-    mPat = emptyPattern(w, h)
-    for pat in patterns:
-        if h > 1:
-            for i in range(h):
-                for j in range(w):
-                    mPat[i][j] = mPat[i][j] + pat['p'][i][j]
-        else:
-            for j in range(w):
-                mPat[j] = mPat[j] + pat['p'][j]
-    if h > 1:
-        for i in range(h):
-            for j in range(w):
-                mPat[i][j] = mPat[i][j] / len(patterns)
-    else:
-        for j in range(w):
-            mPat[j] = mPat[j] / len(patterns)
-    return mPat
-
-# This pattern shows us where the fuzziness is in our average
-def buildSigmaPattern(meanPat, patterns):
-    h = 0
-    w = len(patterns[0]['p'])
-    if isinstance(patterns[0]['p'][0], list):
-        h = len(patterns[0]['p'])
-        w = len(patterns[0]['p'][0])
-    sPat = emptyPattern(w, h)
-    # Sum over all square of distance from means
-    if h > 1:
-        for i in range(h):
-            for j in range(w):
-                for pat in patterns:
-                    sPat[i][j] = sPat[i][j] + (pat['p'][i][j] - meanPat[i][j])*(pat['p'][i][j] - meanPat[i][j])
-                sPat[i][j] = math.sqrt(1.0/len(patterns)*sPat[i][j])
-    else:
-        for j in range(w):
-            for pat in patterns:
-                sPat[j] = sPat[j] + (pat['p'][j] - meanPat[j])*(pat['p'][j] - meanPat[j])
-            sPat[j] = math.sqrt(1.0/len(patterns)*sPat[j])
-    return sPat
-
-# Used in k-means, here we take an average of the member patterns to construct a new center
-def adjustCenters(patterns, centers):
-    groups = {}
-    for k in centers.keys():
-        groups[k] = []
-    for pattern in patterns:
-        bestDist = 99999
-        bestKey = ''
-        for key in centers.keys():
-            center = centers[key]
-            dist = euclidianDistance(pattern['p'], center)
-            if dist < bestDist:
-                bestDist = dist
-                bestKey = key
-        groups[bestKey].append(pattern)
-    newCenters = {}
-    for k in centers.keys():
-        if len(groups[k]) > 0:
-            newCenters[k] = buildMeanPattern(groups[k])
-        else:
-            newCenters[k] = centers[k]
-    return newCenters
+        targets.append(pattern['t'])
+    targets = list(set(targets))
+    return targets
 
 # Creates and empty pattern of the given dimensionality
 def emptyPattern(w, h):
@@ -157,6 +39,7 @@ def printPatterns(pattern):
     else:
         print(', '.join(str(round(x, 3)) for x in pattern))
 
+
 # A Pattern set contains sets of 3 types of patterns
 # and can be used to retrieve only those patterns of a certain type
 class PatternSet:
@@ -178,15 +61,13 @@ class PatternSet:
         print(str(len(self.patterns)) + " Patterns Available (" + str(self.inputMagY) + "x" + str(self.inputMagX) + ")")
 
         # Construct Centers but base them only off the cases to be trained with
-        centersAndSigmas = buildCentersAndSigmas(self.patterns[:int(data['count']*percentTraining)])
-        self.centers = centersAndSigmas['centers']
-        self.sigmas = centersAndSigmas['sigmas']
+        self.targets = findUniqueTargets(self.patterns)
 
         # Architecture has 1 output node for each digit / letter
         # Assemble our target and confusion matrix
-        keys = list(self.centers.keys())
+        keys = self.targets
         keys.sort()
-        print("Centers: [" + ', '.join(str(k).split('.')[0] for k in keys) + "]")
+        print("Targets: [" + ', '.join(str(k).split('.')[0] for k in keys) + "]")
         self.confusionMatrix = {}
         self.targetMatrix = {}
         index = 0
