@@ -1,7 +1,6 @@
 import random
 import math
 import time
-import patternSet
 from patternSet import PatternSet
 
 eta = 1.00
@@ -90,7 +89,7 @@ class Network:
     def __init__(self, patternSet):
         self.iterations = 0
         inputLayer = Layer(NetLayerType.Input, None, patternSet.inputMagnitude())
-        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*2)
+        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*4)
         outputLayer = Layer(NetLayerType.Output, hiddenLayer, patternSet.outputMagnitude())
         self.layers = [inputLayer, hiddenLayer, outputLayer]
         self.output = []
@@ -252,77 +251,6 @@ class Neuron:
 
 
 
-
-#  # Reads patterns in from a file, and puts them in their coorisponding set
-# class PatternSet:
-#     def __init__(self, fileName):
-#         with open(fileName) as jsonData:
-#             data = json.load(jsonData)
-#
-#         # Assign Patterns and Randomize order
-#         self.patterns = data['patterns']
-#         self.inputMagX = len(self.patterns[0]['p'])
-#         self.inputMagY = 1
-#         if isinstance(self.patterns[0]['p'][0], list):
-#             self.inputMagX = len(self.patterns[0]['p'][0])
-#             self.inputMagY = len(self.patterns[0]['p'])
-#
-#         random.shuffle(self.patterns)
-#         print(str(len(self.patterns)) + " Patterns Available (" + str(self.inputMagY) + "x" + str(self.inputMagX) + ")")
-#
-#         # Assign Centers
-#         self.centers = data['centers']
-#
-#         # Architecture has 1 output node for each digit / letter
-#         # Currently this also corrisponds to each center
-#         # Assemble our target and confusion matrix
-#         keys = list(self.centers.keys())
-#         keys.sort()
-#         print("Centers: [" + ', '.join(str(k).split('.')[0] for k in keys) + "]")
-#         self.confusionMatrix = {}
-#         self.targetMatrix = {}
-#         index = 0
-#         for key in keys:
-#             self.confusionMatrix[key] = [0.0] * len(keys)
-#             self.targetMatrix[key] = [0] * len(keys)
-#             self.targetMatrix[key][index] = 1
-#             index = index + 1
-#         self.outputMag = len(keys)
-#
-#         # Sigma = (max euclidian distance between all centers) / number of centers
-#         maxEuclidianDistance = 0.0
-#         for k1 in keys:
-#             for k2 in keys:
-#                 maxEuclidianDistance = max(euclidianDistance(vectorizeMatrix(self.centers[k1]), vectorizeMatrix(self.centers[k2])), maxEuclidianDistance)
-#         Neuron.sigma = maxEuclidianDistance/math.sqrt(len(keys))
-#         print("Sigma: " + str(Neuron.sigma))
-#
-#     def printConfusionMatrix(self):
-#         keys = list(self.confusionMatrix.keys())
-#         keys.sort()
-#         for key in keys:
-#             printPatterns(self.confusionMatrix[key])
-#
-#     def targetVector(self, key):
-#         return self.targetMatrix[str(key)]
-#
-#     def updateConfusionMatrix(self, key, outputs):
-#         maxIndex = 0
-#         maxValue = 0
-#         for i in range(len(outputs)):
-#             if maxValue < outputs[i]:
-#                 maxIndex = i
-#                 maxValue = outputs[i]
-#         # print("Key: " + str(key) + " winner:" + str(maxIndex))
-#         self.confusionMatrix[str(key)][maxIndex] = self.confusionMatrix[str(key)][maxIndex] + 1
-#
-#     def inputMagnitude(self):
-#         return self.inputMagX * self.inputMagY
-#
-#     def outputMagnitude(self):
-#         return self.outputMag
-
-
 #Main
 if __name__=="__main__":
     trainPercentage = 0.8
@@ -331,11 +259,11 @@ if __name__=="__main__":
     #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 1x16 # same as above
     #p = PatternSet('data/semeion/semeion.json', trainPercentage, True)            # 16x16 # Training set is very limited
     #p = PatternSet('data/semeion/semeionTT.json', trainPercentage, True)           # 16x16 # Training set is very limited
-    p = PatternSet('data/optdigits/optdigits.json', trainPercentage)        # 8x8
+    p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
     #for e in range(1, 20):
 
     n = Network(p)
-    n.run(PatternType.Train, 0, int(0.05*p.count*trainPercentage))
+    n.run(PatternType.Train, 0, int(p.count*trainPercentage))
     n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
 
     p.printConfusionMatrix()

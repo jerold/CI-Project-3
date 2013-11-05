@@ -74,8 +74,8 @@ class TrainingStrategy(object):
         return False
 
     def continueToNextGeneration(self):
-        self.select()
-        self.crossover()
+        parents = self.select()
+        self.crossover(parents)
         self.mutate()
         self.repopulate()
 
@@ -88,6 +88,13 @@ class TrainingStrategy(object):
         for p in range(pop):
             self.population.append(Member(gRange[0], gRange[-1], sParams, sMax))
         self.currentMember = 0
+
+    def mutation(self):
+        numberOfElements = 0
+        member = population[0]
+        for gene in member:
+            numberOfElements += 1
+        probability = 1 \ float(numberOfElements)
 
     def resetPopulationFitness(self):
         for member in self.population:
@@ -139,6 +146,7 @@ class EvolutionStrategy(TrainingStrategy):
     def select(self):
         return 0
 
+
     def crossover(self):
         return 0
 
@@ -159,13 +167,24 @@ class GeneticAlgorithm(TrainingStrategy):
         self.strategy = TrainingStrategyType.GeneticAlgorithm
 
     def select(self):
-        return 0
+        return random.sample(self.population, 2)
 
-    def crossover(self):
-        return 0
+    def crossover(self, parents):
+        child = []
+        i = 0
+        while i < len(parents[0]):
+            parent1 = parents[i]
+            parent2 = parents[i+1]
+            i += 2
+            for j, gene in enumerate(parent1):
+                if j % 2 == 0:
+                    child.append(parent1[j])
+                else:
+                    child.append(parent2[j])
 
     def mutate(self):
-        return 0
+        if mutation:
+
 
     def evaluateFitness(self):
         return 0
