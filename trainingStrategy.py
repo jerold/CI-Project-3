@@ -22,8 +22,11 @@ class Member():
 
     def __init__(self, geneMin, geneMax, includeStrategyParameters, strategyMax):
         self.genome = [[float(random.randrange(geneMin*10000, geneMax*10000))/10000 for _ in range(n)] for n in Member.genomeTemplate]
+        self.sigmaSuccess = []
+        self.sigmas = []
         if includeStrategyParameters:
-            self.genome = self.genome + [[float(random.randrange(strategyMax*10000))/10000 for _ in range(n)] for n in Member.genomeTemplate]
+            self.sigmas = [[float(random.randrange(strategyMax*10000))/10000 for _ in range(n)] for n in Member.genomeTemplate]
+            self.sigmaSuccess = [[0 for _ in range(n)] for n in Member.genomeTemplate]
         self.fitness = 0.0
 
     def adjustFitness(self, value):
@@ -51,6 +54,13 @@ class TrainingStrategy(object):
         self.fitnessThreshold = 10
         self.population = []
         self.populationSize = 0
+
+        self.trainingMode = Network.PatternType.Train
+        self.lam = 1
+        self.useSigmas = False
+        self.sigmaMax = 1
+        self.currentChildMember = 0
+        self.childPopulation = []
         self.alphas = [] # a list of the best members from each generation current best is [-1]
 
     @classmethod
@@ -63,15 +73,18 @@ class TrainingStrategy(object):
             return DifferentialGA()
 
     def updateMemberFitness(self, error):
-        self.population[self.currentMember].adjustFitness(error)
-        return 0
+        return self.population[self.currentMember].adjustFitness(error)
 
     def fitnessThresholdMet(self):
         if len(self.alphas) < 1:
             return False
         if self.alphas[-1].fitness < self.fitnessThreshold:
             return True
+        self.resetPopulationFitness()
         return False
+
+    def averageFitness(self):
+        return sum(x.fitness for x in self.population)/len(self.population)
 
     def moreMembers(self):
         if self.currentMember < len(self.population):
@@ -82,22 +95,25 @@ class TrainingStrategy(object):
         self.currentMember = self.currentMember + 1
 
     def continueToNextGeneration(self):
+        print("Average Fitness: " + str(int(self.averageFitness())))
         parents = self.select()
         for p in parents:
             print(str(p[0].fitness) + " " + str(p[1].fitness))
-        child = self.crossover(parents)
-        child = self.mutate(child)
-        self.repopulate(parents + child)
+        self.childPopulation = self.crossover(parents)
+        self.childPopulation = self.mutate(child)
+        self.repopulate()
 
-        self.resetPopulationFitness()
-        self.generation += self.generation
+        self.generation = self.generation + 1
         self.currentMember = 0
+        self.currentChildMember = 0
+        self.childPopulation = []
 
-    def initPopulation(self, pop, gRange, sParams, sMax):
+    def initPopulation(self, pop, gRange):
         self.populationSize = pop
+        self.lam = int(self.lam*self.populationSize)
         self.population = []
         for p in range(pop):
-            self.population.append(Member(gRange[0], gRange[-1], sParams, sMax))
+            self.population.append(Member(gRange[0], gRange[-1], self.useSigmas, self.sigmaMax))
         print("Member Genome Sample:")
         print("[" + ", ".join("[" + str(len(a)) + "]" for a in self.population[0].genome) + "]")
         # print("[" + ", ".join("[" + " ".join(str(b) for b in a) + "]" for a in self.population[0].genome) + "]")
@@ -125,10 +141,14 @@ class TrainingStrategy(object):
 
     def getCurrentMemberWeightsForNeuron(self, neuronNumber):
         """Get method Neurons use to fetch their coorisponding weights from the current member's genome"""
+        if self.trainingMode == Network.PatternType.Test:
+            return self.alphas[-1].getGenesAtPosition(neuronNumber)
         return self.population[self.currentMember].getGenesAtPosition(neuronNumber)
 
     def setCurrentMemberWeightsForNeuron(self, neuronNumber, weights):
         """Set method Neurons use to change their coorisponding weights within the current member's genome"""
+        if self.trainingMode == Network.PatternType.Test:
+            return self.alphas[-1].setGenesAtPosition(neuronNumber)
         return self.population[self.currentMember].setGenesAtPosition(neuronNumber, weights)
 
     def select(self):
@@ -139,7 +159,7 @@ class TrainingStrategy(object):
         """Returns a list of newly minted children"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
-    def mutate(self, population):
+    def mutate(self):
         """Go through all members of the population mutating at chance"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
@@ -156,25 +176,132 @@ class EvolutionStrategy(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.EvolutionStrategy
+        self.lam = .75
+        self.strongerParentPreference = .5
+        self.runningChildren = False
+        self.useSigmas = True
+        self.sigmaMax = 1
+        self.fitnessThreshold = 1000
+
+    def moreMembers(self):
+        """In order to calulate fitness on the chilren we'll do selection, crossover, and mutation
+        at the end of regular pop run, and then continue for the next set"""
+        if not self.runningChildren and self.currentMember < len(self.population):
+            return True
+        if not self.runningChildren:
+            # Once all current members have been evaluated, produce children mutate and calculate fitness for them
+            print("Average Fitness: " + str(int(self.averageFitness())))
+            parents = self.select()
+            self.childPopulation = self.crossover(parents)
+            self.mutate()
+            self.runningChildren = True
+            if len(self.childPopulation) > 0:
+                return True
+            return False
+        if self.runningChildren and self.currentChildMember < len(self.childPopulation):
+            return True
+        return False
+    
+    def continueToNextMember(self):
+        if not self.runningChildren:
+            self.currentMember = self.currentMember + 1
+        else:
+            self.currentChildMember = self.currentChildMember + 1
+        
+    def continueToNextGeneration(self):
+        self.repopulate()
+        
+        self.generation = self.generation + 1
+        self.currentMember = 0
+        self.runningChildren = False
+        self.currentChildMember = 0
+        self.childPopulation = []
+
+    def updateMemberFitness(self, error):
+        if not self.runningChildren:
+            return self.population[self.currentMember].adjustFitness(error)
+        return self.childPopulation[self.currentChildMember].adjustFitness(error)
+
+    def getCurrentMemberWeightsForNeuron(self, neuronNumber):
+        """Get method Neurons use to fetch their coorisponding weights from the current member's genome"""
+        if self.trainingMode == Network.PatternType.Test:
+            return self.alphas[-1].getGenesAtPosition(neuronNumber)
+        if not self.runningChildren:
+            return self.population[self.currentMember].getGenesAtPosition(neuronNumber)
+        return self.childPopulation[self.currentChildMember].getGenesAtPosition(neuronNumber)
+
+    def setCurrentMemberWeightsForNeuron(self, neuronNumber, weights):
+        """Set method Neurons use to change their coorisponding weights within the current member's genome"""
+        if self.trainingMode == Network.PatternType.Test:
+            return self.alphas[-1].setGenesAtPosition(neuronNumber)
+        if not self.runningChildren:
+            return self.population[self.currentMember].setGenesAtPosition(neuronNumber)
+        return self.childPopulation[self.currentChildMember].setGenesAtPosition(neuronNumber)
 
     def select(self):
         self.population.sort(key=lambda x: x.fitness, reverse=False)
         self.alphas.append(self.population[0])
-        elites = self.population[:self.populationSize/2]
-        randoms = random.sample(self.population, self.populationSize/2)
-        return zip(elites, randoms)
+        print("Alpha Fitness: " + str(int(self.alphas[-1].fitness)))
+        # elites = self.population[:self.populationSize/2]
+        moms = random.sample(self.population, self.lam)
+        dads = random.sample(self.population, self.lam)
+        if self.lam == self.populationSize:
+            moms = random.shuffle(self.population)
+            dads = random.shuffle(self.population)
+        parents = list(zip(moms, dads))
+        #for p in parents:
+        #    print(str(p[0].fitness) + " " + str(p[1].fitness))
+        return zip(moms, dads)
 
-    def crossover(self):
-        return 0
+    def crossover(self, parents):
+        #Uniform Crossover, produces 1 child per pair of parents
+        children = []
+        for pair in parents:
+            pair = list(pair)
+            pair.sort(key=lambda x: x.fitness, reverse=False)
+            child = Member(0, 1, self.useSigmas, self.sigmaMax)
+            # by gene we also mean sigmas as the crossover for these is the same
+            for g, gene in enumerate(child.genome):
+                for w, singleWeight in enumerate(gene):
+                    if random.random() <= self.strongerParentPreference:
+                        child.genome[g][w] = pair[0].genome[g][w]
+                    else:
+                        child.genome[g][w] = pair[1].genome[g][w]
+                    if random.random() <= self.strongerParentPreference:
+                        child.sigmas[g][w] = pair[0].sigmas[g][w]
+                    else:
+                        child.sigmas[g][w] = pair[1].sigmas[g][w]
+                    
+            children.append(child)
+        # Add one completely new individual
+        children.append(Member(-0.4, 0.4, self.useSigmas, self.sigmaMax))
+        return children
 
     def mutate(self):
         return 0
-
+        for child in self.childPopulation:
+            for g, gene in enumerate(child.genome):
+                for w, singleWeight in enumerate(gene):
+                    if random.random() <= 0.5:
+                        child.genome[g][w] = child.genome[g][w] + .1
+                    else:
+                        child.genome[g][w] = child.genome[g][w] - .1
+                    
     def evaluateFitness(self):
         return 0
 
     def repopulate(self):
-        return 0
+        # (m+l)-ES
+        oldAndNew = self.population + self.childPopulation
+        oldAndNew.sort(key=lambda x: x.fitness, reverse=False)
+        self.population = oldAndNew[:self.populationSize]
+        for member in self.population:
+            # the sigmas account for the second half od the genome
+            for s, sigma in enumerate(member.sigmas):
+                for w, singleWeight in enumerate(sigma):
+                    member.sigmaSuccess[s][w] = member.sigmaSuccess[s][w] + 1
+            #print(member.sigmaSuccess)
+                    
 
 
 

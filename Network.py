@@ -66,6 +66,7 @@ class Net:
     # At the end Error is calculated
     def run(self, mode, startIndex, endIndex):
         patterns = self.patternSet.patterns
+        Net.trainingStrategy.trainingMode = mode
         print("Mode[" + PatternType.desc(mode) + ":" + str(endIndex - startIndex) + "]")
         startTime = time.time()
 
@@ -80,13 +81,19 @@ class Net:
                         self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
                         self.layers[NetLayerType.Input].feedForward()
                         Net.trainingStrategy.updateMemberFitness(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs()))
-                    print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness) + "]")
+                    if Net.trainingStrategy.runningChildren:
+                        print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness) + "]")
+                    else:
+                        print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness) + "]")                        
                     Net.trainingStrategy.continueToNextMember()
                 Net.trainingStrategy.continueToNextGeneration()
         else:
             for i in range(startIndex, endIndex):
                 self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
                 self.layers[NetLayerType.Input].feedForward()
+                print("Pattern: " + str(i))
+                print("Output: " + str(self.layers[-1].getOutputs()))
+                print("Target: " + str(self.patternSet.targetVector(patterns[i]['t'])))
                 self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[-1].getOutputs())
 
         endTime = time.time()
@@ -228,7 +235,7 @@ if __name__=="__main__":
 
     TS.Member.genomeTemplate = genomeTemplate
     Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
-    Net.trainingStrategy.initPopulation(populationSize, (-0.3, 0.3), False, 0)
+    Net.trainingStrategy.initPopulation(populationSize, (-0.3, 0.3))
         
     n = Net(p, hiddenArchitecture)
     n.run(PatternType.Train, 0, int(p.count*trainPercentage))
