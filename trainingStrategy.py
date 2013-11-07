@@ -83,6 +83,8 @@ class TrainingStrategy(object):
 
     def continueToNextGeneration(self):
         parents = self.select()
+        for p in parents:
+            print(str(p[0].fitness) + " " + str(p[1].fitness))
         child = self.crossover(parents)
         child = self.mutate(child)
         self.repopulate(parents + child)
@@ -133,11 +135,11 @@ class TrainingStrategy(object):
         """Returns a list of parents chosen for crossover"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
-    def crossover(self):
+    def crossover(self, parents):
         """Returns a list of newly minted children"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
-    def mutate(self):
+    def mutate(self, population):
         """Go through all members of the population mutating at chance"""
         raise("Instance of an Abstract Class... Bad Juju!")
 
@@ -156,8 +158,11 @@ class EvolutionStrategy(TrainingStrategy):
         self.strategy = TrainingStrategyType.EvolutionStrategy
 
     def select(self):
-        return 0
-
+        self.population.sort(key=lambda x: x.fitness, reverse=False)
+        self.alphas.append(self.population[0])
+        elites = self.population[:self.populationSize/2]
+        randoms = random.sample(self.population, self.populationSize/2)
+        return zip(elites, randoms)
 
     def crossover(self):
         return 0

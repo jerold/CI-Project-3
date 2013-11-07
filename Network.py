@@ -227,7 +227,7 @@ if __name__=="__main__":
 
 
     TS.Member.genomeTemplate = genomeTemplate
-    Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
+    Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
     Net.trainingStrategy.initPopulation(populationSize, (-0.3, 0.3), False, 0)
         
     n = Net(p, hiddenArchitecture)
