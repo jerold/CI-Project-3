@@ -259,7 +259,8 @@ if __name__=="__main__":
     # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
     TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
-    Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
+    Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
+    #Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
         
     n = Net(p, hiddenArchitecture)
