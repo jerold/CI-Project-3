@@ -326,17 +326,14 @@ class GeneticAlgorithm(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.GeneticAlgorithm
-        self.lam =
+        self.lam = .5
 
     def select(self):
-        bestMembers = []
-        for member in self.population:
-            
-        bestMembers = self.population
-        moms = random.sample(self.population, self.la)
-        dads = random.sample(self.population, self.lam)
+        self.population.sort(lambda x: x.fitness, False)
+        bestMembers = self.population[:len(self.population/2)]
+        otherMembers = self.population[len(self.population/2):]
         for i in range(self.population):
-            yield [moms[i], dads[i]]
+            yield [bestMembers[i], otherMembers[i]]
 
     def crossover(self, parents):
         """For the """

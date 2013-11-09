@@ -33,14 +33,14 @@ def sigmoidal(parameter):
     """Activation Funtion used by the Neurons during feed forward"""
     return math.tanh(parameter)
 
-def outputError(p, q):
+def outputError1(p, q):
     """Combined sum of the difference between two vectors"""
     errSum = 0.0
     for i in range(len(p)):
         errSum = errSum + math.fabs(p[i] - q[i])
     return errSum
 
-def outputError1(target, inVals):
+def outputError(target, inVals):
     """Simple Correct or incorrect rating for the result"""
     maxIndex = 0
     maxValue = 0
@@ -56,7 +56,7 @@ def outputError1(target, inVals):
     #     print("InCorrect")
     if target[maxIndex] > 0:
         return 0
-    return 1
+    return outputError1(target, inVals)
 
 def vectorizeMatrix(p):
     """Turns a 2D matrix into a vector by appending the rows to one another"""
