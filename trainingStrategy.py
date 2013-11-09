@@ -219,7 +219,7 @@ class EvolutionStrategy(TrainingStrategy):
     def continueToNextGeneration(self):
         self.repopulate()
         #print("G:" + str(self.generation) + " F[" + ", ".join(str(int(m.fitness)) for m in self.population) + "] Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
-        print("G:" + str(self.generation) + " Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
+        print("G:" + str(self.generation) + " F[" + ", ".join(str(round(m.fitness, 3)) for m in self.population) + "] Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
         
         self.generation = self.generation + 1
         # self.currentMember = 0

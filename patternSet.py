@@ -68,11 +68,17 @@ class PatternSet:
 
         # Use this if we wish each category to have the same number of patterns for it
         keys = self.counts.keys()
-        minPatternCount = self.counts[max(self.counts)]
+        minPatternCount = 9999
         patternTargetSets = {}
         self.newPatterns = []
         for key in keys:
+            if minPatternCount > self.counts[key]:
+                minPatternCount = self.counts[key]
+        print("Min:" + str(minPatternCount))
+        for key in keys:
             patternTargetSets[key] = []
+            if minPatternCount > self.counts[key]:
+                minPatternCount = self.counts[key]
             for pat in self.patterns:
                 if pat['t'] == key:
                     patternTargetSets[key].append(pat)

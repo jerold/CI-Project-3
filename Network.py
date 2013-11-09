@@ -263,9 +263,9 @@ if __name__=="__main__":
     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
         
     n = Net(p, hiddenArchitecture)
-    # n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-    # n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
-    n.run(PatternType.Train, 0, 260)
-    n.run(PatternType.Test, 0, 260)
+    n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+    n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+    # n.run(PatternType.Train, 0, 260)
+    # n.run(PatternType.Test, 0, 260)
     p.printConfusionMatrix()
     print("Done")
