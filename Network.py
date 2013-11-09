@@ -254,6 +254,7 @@ if __name__=="__main__":
     p = PatternSet('data/car/car.json', trainPercentage)            # Cases:1382 @ 1x16 # same as above
     #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # Cases:10992 @ 1x16 # same as above
     #p = PatternSet('data/block/pageblocks.json', trainPercentage)
+    #p = PatternSet('data/optdigits/optdigits.json', trainPercentage)        # 5620 @ 8x8
 
     print("Weight Architecture:")
     # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
