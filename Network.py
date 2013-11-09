@@ -40,6 +40,24 @@ def outputError(p, q):
         errSum = errSum + math.fabs(p[i] - q[i])
     return errSum
 
+def outputError1(target, inVals):
+    """Simple Correct or incorrect rating for the result"""
+    maxIndex = 0
+    maxValue = 0
+    for i in range(len(inVals)):
+        if maxValue < inVals[i]:
+            maxIndex = i
+            maxValue = inVals[i]
+    # print(inVals)
+    # print(target)
+    # if target[maxIndex] > 0:
+    #     print("Correct")
+    # else:
+    #     print("InCorrect")
+    if target[maxIndex] > 0:
+        return 0
+    return 1
+
 def vectorizeMatrix(p):
     """Turns a 2D matrix into a vector by appending the rows to one another"""
     if isinstance(p[0], list):
@@ -50,7 +68,17 @@ def vectorizeMatrix(p):
     else:
         return p
 
-
+def genomeTemplateFromArchitecture(inCount, hiddenArch, outCount):
+    print("Arch: [" + str(inCount) + "][" + "][".join(str(n) for n in hiddenArch) + "][" + str(outCount) + "]")
+    tempGenomeTemp = [inCount for _ in range(hiddenArch[0])]
+    #print("[" + str(inCount) + "]x" + str(hiddenArch[0]))
+    for h in range(1, len(hiddenArchitecture)):
+        tempGenomeTemp = tempGenomeTemp + [hiddenArchitecture[h-1] for _ in range(hiddenArchitecture[h])]
+        #print("[" + str(hiddenArchitecture[h-1]) + "]x" + str(hiddenArchitecture[h]))
+    tempGenomeTemp = tempGenomeTemp + [hiddenArchitecture[-1] for _ in range(outCount)]
+    #print("[" + str(hiddenArchitecture[-1]) + "]x" + str(outCount))
+    #print(tempGenomeTemp)
+    return tempGenomeTemp
 
 class Net:
     def __init__(self, patternSet, hiddenArch):
@@ -82,22 +110,22 @@ class Net:
                         self.layers[NetLayerType.Input].feedForward()
                         Net.trainingStrategy.updateMemberFitness(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs()))
                     if Net.trainingStrategy.runningChildren:
-                        print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness) + "]")
+                        print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "]")
                     else:
-                        print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness) + "]")                        
+                        print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "]")                        
                     Net.trainingStrategy.continueToNextMember()
                 Net.trainingStrategy.continueToNextGeneration()
         else:
             for i in range(startIndex, endIndex):
                 self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
                 self.layers[NetLayerType.Input].feedForward()
-                print("Pattern: " + str(i))
-                print("Output: " + str(self.layers[-1].getOutputs()))
-                print("Target: " + str(self.patternSet.targetVector(patterns[i]['t'])))
+                # print("Pattern: " + str(i))
+                # print("Output: " + str(self.layers[-1].getOutputs()))
+                # print("Target: " + str(self.patternSet.targetVector(patterns[i]['t'])))
                 self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[-1].getOutputs())
 
         endTime = time.time()
-        print("Run Time: [" + str(endTime-startTime) + "sec]")
+        print("Run Time: [" + str(round(endTime-startTime, 2)) + " sec]")
                 
     def calculateConvError(self, input):
         error = 0
@@ -214,26 +242,19 @@ class Neuron:
     
 #Main
 if __name__=="__main__":
-    trainPercentage = 0.8
+    trainPercentage = 0.5
     attributeNeuronMultiplier = 2
-    populationSize = 10
+    populationSize = 40
     
-    # p = PatternSet('data/adult/adult.json', trainPercentage)        # Train:26048 @ 1x16 # same as above
-    p = PatternSet('data/car/car.json', trainPercentage)            # Train:1382 @ 1x16 # same as above
-
+    p = PatternSet('data/adult/adult.json', trainPercentage)        # Train:26048 @ 1x16 # same as above
+    # p = PatternSet('data/car/car.json', trainPercentage)            # Train:1382 @ 1x16 # same as above
+    # p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 10992 @ 1x16 # same as above
+    # p = PatternSet('data/block/pageblocks.json', trainPercentage)
 
     print("Weight Architecture:")
-    hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
-    genomeTemplate = [len(p.patterns[0]['p']) for _ in range(len(p.patterns[0]['p'])*attributeNeuronMultiplier)]
-    print("[" + str(len(p.patterns[0]['p'])) + "]x" + str(len(p.patterns[0]['p'])*attributeNeuronMultiplier))
-    for h in range(1, len(hiddenArchitecture)):
-        genomeTemplate = genomeTemplate + list([hiddenArchitecture[h-1] for _ in range(hiddenArchitecture[h])])
-        print("[" + str(hiddenArchitecture[h-1]) + "]x" + str(hiddenArchitecture[h]))
-    genomeTemplate = genomeTemplate + list([hiddenArchitecture[-1] for _ in range(len(p.targets))])
-    print("[" + str(hiddenArchitecture[-1]) + "]x" + str(len(p.targets)))
-
-
-    TS.Member.genomeTemplate = genomeTemplate
+    # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
+    hiddenArchitecture = [40, 20] # hidden layer is a new index in this list, value = number of neurons in that layer
+    TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
     Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
     Net.trainingStrategy.initPopulation(populationSize, (-0.3, 0.3))
         

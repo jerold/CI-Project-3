@@ -18,15 +18,16 @@ class TrainingStrategyType:
 
 
 class Member():
+    memberIdInc = 0
     genomeTemplate = [] # example [3, 3, 3, 3, 4, 4] Input layer has 3 nodes, Hidden has 4, output has 2
 
     def __init__(self, geneMin, geneMax, includeStrategyParameters, strategyMax):
+        self.id = Member.memberIdInc
+        Member.memberIdInc = Member.memberIdInc + 1
         self.genome = [[float(random.randrange(geneMin*10000, geneMax*10000))/10000 for _ in range(n)] for n in Member.genomeTemplate]
-        self.sigmaSuccess = []
         self.sigmas = []
         if includeStrategyParameters:
             self.sigmas = [[float(random.randrange(strategyMax*10000))/10000-(strategyMax/2) for _ in range(n)] for n in Member.genomeTemplate]
-            self.sigmaSuccess = [[0 for _ in range(n)] for n in Member.genomeTemplate]
         self.fitness = 0.0
 
     def adjustFitness(self, value):
@@ -51,7 +52,7 @@ class TrainingStrategy(object):
         self.strategy = 4
         self.generation = 0
         self.currentMember = 0
-        self.fitnessThreshold = 10
+        self.fitnessThreshold = .9
         self.population = []
         self.populationSize = 0
 
@@ -76,11 +77,11 @@ class TrainingStrategy(object):
         return self.population[self.currentMember].adjustFitness(error)
 
     def fitnessThresholdMet(self):
-        if self.generation > 40:
+        if self.generation > 10:
             return True
         if len(self.alphas) < 1:
             return False
-        if self.alphas[0].fitness < self.fitnessThreshold:
+        if self.alphas[0].fitness <= self.fitnessThreshold:
             return True
         self.resetPopulationFitness()
         return False
@@ -182,9 +183,11 @@ class EvolutionStrategy(TrainingStrategy):
         self.lam = 1.0
         self.strongerParentPreference = .75
         self.runningChildren = False
+        self.fitnessThreshold = 900
         self.useSigmas = True
         self.sigmaMax = .1
-        self.fitnessThreshold = 1000
+        self.childSuccess = 0.0
+        self.highestCurrentMemberId = 0
 
     def moreMembers(self):
         """In order to calulate fitness on the chilren we'll do selection, crossover, and mutation
@@ -212,7 +215,8 @@ class EvolutionStrategy(TrainingStrategy):
         
     def continueToNextGeneration(self):
         self.repopulate()
-        print("G:" + str(self.generation) + " F[" + ", ".join(str(int(m.fitness)) for m in self.population) + "] Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())))
+        #print("G:" + str(self.generation) + " F[" + ", ".join(str(int(m.fitness)) for m in self.population) + "] Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
+        print("G:" + str(self.generation) + " Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
         
         self.generation = self.generation + 1
         self.currentMember = 0
@@ -242,10 +246,6 @@ class EvolutionStrategy(TrainingStrategy):
         return self.childPopulation[self.currentChildMember].setGenesAtPosition(neuronNumber)
 
     def select(self):
-        self.population.sort(key=lambda x: x.fitness, reverse=False)
-        if self.population[0] not in self.alphas and (len(self.alphas) < 1 or self.population[0].fitness < self.alphas[0].fitness):
-            self.alphas.append(self.population[0])
-            self.alphas.sort(key=lambda x: x.fitness, reverse=False)
         # elites = self.population[:self.populationSize/2]
         moms = random.sample(self.population, self.lam)
         dads = random.sample(self.population, self.lam)
@@ -256,7 +256,9 @@ class EvolutionStrategy(TrainingStrategy):
     def crossover(self, parents):
         #Uniform Crossover, produces 1 child per pair of parents
         children = []
-        print(len(parents))
+        #We use highestCurrentMemberId to check which of the members of the next generation are children of this generation
+        self.highestCurrentMemberId = Member.memberIdInc
+        #print(len(parents))
         for pair in parents:
             pair = list(pair)
             pair.sort(key=lambda x: x.fitness, reverse=False)
@@ -272,18 +274,21 @@ class EvolutionStrategy(TrainingStrategy):
                         child.sigmas[g][w] = pair[0].sigmas[g][w]
                     else:
                         child.sigmas[g][w] = pair[1].sigmas[g][w]
-                    
             children.append(child)
         return children
 
     def mutate(self):
+        # Use 1/5 rule for sigma mutation
+        sigmaMod = 1.0
+        if self.childSuccess > 0.2:
+            sigmaMod = 1.225
+        else:
+            sigmaMod = 0.816
         for child in self.childPopulation:
             for g, gene in enumerate(child.genome):
                 for w, singleWeight in enumerate(gene):
-                    if random.random() < 0.5:
-                        child.genome[g][w] = child.genome[g][w] + child.sigmas[g][w]
-                    else:
-                        child.genome[g][w] = child.genome[g][w] - child.sigmas[g][w]
+                    child.sigmas[g][w] = child.sigmas[g][w] * sigmaMod
+                    child.genome[g][w] = child.genome[g][w] + random.gauss(0, child.sigmas[g][w])
                     
     def evaluateFitness(self):
         return 0
@@ -299,12 +304,16 @@ class EvolutionStrategy(TrainingStrategy):
         oldAndNew = self.population + self.childPopulation
         oldAndNew.sort(key=lambda x: x.fitness, reverse=False)
         self.population = oldAndNew[:self.populationSize]
+        if self.population[0] not in self.alphas and (len(self.alphas) == 0 or self.population[0].fitness < self.alphas[0].fitness):
+            self.alphas.append(self.population[0])
+            self.alphas.sort(key=lambda x: x.fitness, reverse=False)
+        print("New Pop: " + " ".join(str(int(m.fitness)) for m in self.population))
+        print("Alphas: " + " ".join(str(int(m.fitness)) for m in self.alphas))
+        self.childSuccess = 0.0
         for member in self.population:
-            # the sigmas account for the second half od the genome
-            for s, sigma in enumerate(member.sigmas):
-                for w, singleWeight in enumerate(sigma):
-                    member.sigmaSuccess[s][w] = member.sigmaSuccess[s][w] + 1
-            #print(member.genome[0])
+            if member.id > self.highestCurrentMemberId:
+                self.childSuccess = self.childSuccess + 1
+        self.childSuccess = self.childSuccess/self.populationSize
                 
 
 
