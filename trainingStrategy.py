@@ -327,31 +327,34 @@ class GeneticAlgorithm(TrainingStrategy):
         self.strategy = TrainingStrategyType.GeneticAlgorithm
 
     def select(self):
-        return random.sample(self.population, 2)
+        return random.sample(self.population, 8)
 
     def crossover(self, parents):
         """For the """
-        child = []
+        children = []
         i = 0
         while i < len(parents[0]):
             parent1 = parents[i]
             parent2 = parents[i+1]
             i += 2
             for j, gene in enumerate(parent1):
+                child = []
                 if j % 2 == 0:
                     child.append(parent1[j])
                 else:
                     child.append(parent2[j])
-        return child
+                children.append(child)
+        return children
 
-    def mutate(self, child):
-        for gene in child:
-            for elem in gene:
-                if self.mutation():
-                    if random.choice([True, False]):
-                        elem += self.epsilon()
-                    else:
-                        elem -= self.epsilon()
+    def mutate(self, children):
+        for child in children:
+            for gene in child:
+                for elem in gene:
+                    if self.mutation():
+                        if random.choice([True, False]):
+                            elem += self.epsilon()
+                        else:
+                            elem -= self.epsilon()
         return child
 
     def evaluateFitness(self, child):
@@ -400,7 +403,7 @@ class DifferentialGA(TrainingStrategy):
 #     ts = TrainingStrategy.getTrainingStrategyOfType(TrainingStrategyType.GeneticAlgorithm)
 #     Member.genomeTemplate = [3, 3, 3, 3, 4, 4]
 #     memberCount = 10
-#     ts.initPopulation(10, range(-5, 5), True, memberCount)
+#     ts.initPopulation(10, range(-5, 5))
 #     for i in range(memberCount):
 #         print(ts.population[i].genome)
 #     print(ts.getCurrentMemberWeightsForNeuron(1))
@@ -409,7 +412,3 @@ class DifferentialGA(TrainingStrategy):
 #     ts.population[0].adjustFitness(4.50)
 #     ts.population[0].adjustFitness(5.50)
 #     print(ts.population[0].fitness)
-
-
-
-

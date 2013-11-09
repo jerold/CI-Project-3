@@ -89,7 +89,7 @@ class Network:
     def __init__(self, patternSet):
         self.iterations = 0
         inputLayer = Layer(NetLayerType.Input, None, patternSet.inputMagnitude())
-        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*4)
+        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*2)
         outputLayer = Layer(NetLayerType.Output, hiddenLayer, patternSet.outputMagnitude())
         self.layers = [inputLayer, hiddenLayer, outputLayer]
         self.output = []
@@ -257,9 +257,9 @@ if __name__=="__main__":
     #p = PatternSet('data/optdigits/optdigits-orig.json', trainPercentage, True)   # 32x32
     #p = PatternSet('data/letter/letter-recognition.json', trainPercentage, True)  # 1x16 # Try 1 center per attribute, and allow outputs to combine them
     #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 1x16 # same as above
-    #p = PatternSet('data/semeion/semeion.json', trainPercentage, True)            # 16x16 # Training set is very limited
-    #p = PatternSet('data/semeion/semeionTT.json', trainPercentage, True)           # 16x16 # Training set is very limited
-    p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
+    p = PatternSet('data/block/pageblocks.json', trainPercentage)            # 16x16 # Training set is very limited
+    #p = PatternSet('data/adult/adult.json', trainPercentage)           # 16x16 # Training set is very limited
+    #p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
     #for e in range(1, 20):
 
     n = Network(p)
