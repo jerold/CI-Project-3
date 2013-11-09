@@ -84,7 +84,11 @@ class PatternSet:
                     patternTargetSets[key].append(pat)
             setMultiplier = 0
             while setMultiplier*len(patternTargetSets[key]) < maxPatternCount:
-                self.newPatterns = self.newPatterns + patternTargetSets[key]
+                if (setMultiplier+1)*len(patternTargetSets[key]) > maxPatternCount:
+                    addAmount = (setMultiplier+1)*len(patternTargetSets[key]) - maxPatternCount
+                    self.newPatterns = self.newPatterns + patternTargetSets[key][:addAmount]
+                else:
+                    self.newPatterns = self.newPatterns + patternTargetSets[key]
                 setMultiplier = setMultiplier + 1
         self.patterns = self.newPatterns
         self.count = len(self.patterns)

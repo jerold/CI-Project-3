@@ -80,7 +80,7 @@ class TrainingStrategy(object):
         return self.population[self.currentMember].adjustFitness(error)
 
     def fitnessThresholdMet(self):
-        if self.generation > 100:
+        if self.generation > 15:
             return True
         if len(self.alphas) < 1:
             return False
@@ -158,6 +158,24 @@ class TrainingStrategy(object):
             return self.alphas[0].setGenesAtPosition(neuronNumber)
         return self.population[self.currentMember].setGenesAtPosition(neuronNumber, weights)
 
+    def avgSigma(self):
+        sigSum = 0.0
+        sigCount = 0
+        for member in self.population:
+            for g, gene in enumerate(member.sigmas):
+                for w, singleSigma in enumerate(gene):
+                    sigSum = sigSum + singleSigma
+                    sigCount = sigCount + 1
+        return sigSum/sigCount
+
+    def memberVarience(self):
+        diffSum = 0.0
+        for member in self.population:
+            mg = Network.vectorizeMatrix(member.genome)
+            ag = Network.vectorizeMatrix(self.alphas[0].genome)
+            diffSum = diffSum + Network.outputError(mg, ag)
+        return diffSum/len(self.population)
+
     def select(self):
         """Returns a list of parents chosen for crossover"""
         raise("Instance of an Abstract Class... Bad Juju!")
@@ -219,7 +237,7 @@ class EvolutionStrategy(TrainingStrategy):
     def continueToNextGeneration(self):
         self.repopulate()
         #print("G:" + str(self.generation) + " F[" + ", ".join(str(int(m.fitness)) for m in self.population) + "] Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
-        print("G:" + str(self.generation) + " F[" + ", ".join(str(round(m.fitness, 3)) for m in self.population) + "] Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
+        print("G:" + str(self.generation) + " AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 3)) + " Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
         
         self.generation = self.generation + 1
         # self.currentMember = 0
