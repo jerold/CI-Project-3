@@ -84,12 +84,22 @@ def printPatterns(pattern):
     else:
         print(', '.join(str(round(x, 3)) for x in pattern))
 
+def saveWeights(net):
+    with open('alpha.csv', 'a') as file:
+        for layer in net.layers[1:]:
+            for neuron in layer.neurons:
+                temp = ''
+                for weight in neuron.weight:
+                    temp += str(weight) + ','
+                file.write(temp[:-1] + '\n')
+
+
 
 class Network:
     def __init__(self, patternSet):
         self.iterations = 0
         inputLayer = Layer(NetLayerType.Input, None, patternSet.inputMagnitude())
-        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*4)
+        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*2)
         outputLayer = Layer(NetLayerType.Output, hiddenLayer, patternSet.outputMagnitude())
         self.layers = [inputLayer, hiddenLayer, outputLayer]
         self.output = []
@@ -112,6 +122,7 @@ class Network:
                 #self.train(self.patternSet.targetVector(patterns[i]['p']), True)
                 self.train(vectorizeMatrix(patterns[i]['p']), self.patternSet.targetVector(patterns[i]['t']), True)
             else:
+                print patterns[i]['t']
                 self.train(vectorizeMatrix(patterns[i]['p']), self.patternSet.targetVector(patterns[i]['t']), False)
                 self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[NetLayerType.Output].getOutputs())
             # Each pattern produces an error which is added to the total error for the set
@@ -139,8 +150,8 @@ class Network:
                 #print self.iterations
         for j, neuron in enumerate(self.layers[-1].neurons):
             output[j] = neuron.output
-        if not train:
-            print(output)
+        #if not train:
+            #print(output)
 
     def calculateConvError(self, input):
         error = 0
@@ -257,13 +268,14 @@ if __name__=="__main__":
     #p = PatternSet('data/optdigits/optdigits-orig.json', trainPercentage, True)   # 32x32
     #p = PatternSet('data/letter/letter-recognition.json', trainPercentage, True)  # 1x16 # Try 1 center per attribute, and allow outputs to combine them
     #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 1x16 # same as above
-    #p = PatternSet('data/semeion/semeion.json', trainPercentage, True)            # 16x16 # Training set is very limited
-    #p = PatternSet('data/semeion/semeionTT.json', trainPercentage, True)           # 16x16 # Training set is very limited
-    p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
+    p = PatternSet('data/block/pageblocks.json', trainPercentage)            # 16x16 # Training set is very limited
+    #p = PatternSet('data/adult/adult.json', trainPercentage)           # 16x16 # Training set is very limited
+    #p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
     #for e in range(1, 20):
 
     n = Network(p)
     n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+    saveWeights(n)
     n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
 
     p.printConfusionMatrix()
