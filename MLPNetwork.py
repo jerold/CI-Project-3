@@ -268,9 +268,9 @@ if __name__=="__main__":
     #p = PatternSet('data/optdigits/optdigits-orig.json', trainPercentage, True)   # 32x32
     #p = PatternSet('data/letter/letter-recognition.json', trainPercentage, True)  # 1x16 # Try 1 center per attribute, and allow outputs to combine them
     #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 1x16 # same as above
-    p = PatternSet('data/block/pageblocks.json', trainPercentage)            # 16x16 # Training set is very limited
+    #p = PatternSet('data/block/pageblocks.json', trainPercentage)            # 16x16 # Training set is very limited
     #p = PatternSet('data/adult/adult.json', trainPercentage)           # 16x16 # Training set is very limited
-    #p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
+    p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
     #for e in range(1, 20):
 
     n = Network(p)

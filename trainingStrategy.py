@@ -58,7 +58,7 @@ class TrainingStrategy(object):
         self.fitnessThreshold = .10
         self.population = []
         self.populationSize = 0
-
+        self.runningChildren = False
         self.trainingMode = Network.PatternType.Train
         self.lam = 1
         self.useSigmas = False
@@ -344,27 +344,34 @@ class GeneticAlgorithm(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.GeneticAlgorithm
-        #self.
+        self.lam = .5
 
     def select(self):
-        return random.sample(self.population, 8)
+        self.population.sort(lambda x: x.fitness, False)
+        bestMembers = self.population[:len(self.population/2)]
+        otherMembers = self.population[len(self.population/2):]
+        for i in range(self.population):
+            yield [bestMembers[i], otherMembers[i]]
 
     def crossover(self, parents):
         """For the """
-        children = []
-        i = 0
-        while i < len(parents[0]):
-            parent1 = parents[i]
-            parent2 = parents[i+1]
-            i += 2
-            for j, gene in enumerate(parent1):
-                child = []
-                if j % 2 == 0:
-                    child.append(parent1[j])
-                else:
-                    child.append(parent2[j])
-                children.append(child)
-        return children
+        #children = []
+        #i = 0
+        #always get a list of two parents from the generator
+        # #while i < len(parents[0]):
+        #     parent1 = parents[0]
+        #     parent2 = parents[1]
+            #i += 2
+        parents = list(parents)
+        print parents
+        for j, gene in enumerate(parents[0]):
+            child = []
+            if j % 2 == 0:
+                child.append(parents[0][j])
+            else:
+                child.append(parents[1][j])
+            #children.append(child)
+        return child
 
     def mutate(self, children):
         for child in children:
