@@ -122,6 +122,7 @@ class Network:
                 #self.train(self.patternSet.targetVector(patterns[i]['p']), True)
                 self.train(vectorizeMatrix(patterns[i]['p']), self.patternSet.targetVector(patterns[i]['t']), True)
             else:
+                print patterns[i]['t']
                 self.train(vectorizeMatrix(patterns[i]['p']), self.patternSet.targetVector(patterns[i]['t']), False)
                 self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[NetLayerType.Output].getOutputs())
             # Each pattern produces an error which is added to the total error for the set
@@ -149,8 +150,8 @@ class Network:
                 #print self.iterations
         for j, neuron in enumerate(self.layers[-1].neurons):
             output[j] = neuron.output
-        if not train:
-            print(output)
+        #if not train:
+            #print(output)
 
     def calculateConvError(self, input):
         error = 0
