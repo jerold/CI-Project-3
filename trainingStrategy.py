@@ -162,10 +162,10 @@ class TrainingStrategy(object):
         sigSum = 0.0
         sigCount = 0
         for member in self.population:
-            for g, gene in enumerate(member.sigmas):
-                for w, singleSigma in enumerate(gene):
-                    sigSum = sigSum + singleSigma
-                    sigCount = sigCount + 1
+            ms = Network.vectorizeMatrix(member.sigmas)
+            for singleSigma in ms:
+                sigSum = sigSum + singleSigma
+                sigCount = sigCount + 1
         return sigSum/sigCount
 
     def memberVarience(self):
