@@ -348,6 +348,10 @@ class GeneticAlgorithm(TrainingStrategy):
 
     def select(self):
         self.population.sort(lambda x: x.fitness, False)
+        if not self.alphas:
+            self.alphas.append(self.population[0])
+        else:
+            self.alphas[0] = self.population[0]
         bestMembers = self.population[:len(self.population/2)]
         otherMembers = self.population[len(self.population/2):]
         for i in range(self.population):
