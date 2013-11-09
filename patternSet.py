@@ -7,11 +7,16 @@ import math
 
 def findUniqueTargets(patterns):
     targets = []
-    counts = []
+    counts = {}
     for pattern in patterns:
-        targets.append(pattern['t'])
-    targets = list(set(targets))
-    return targets
+        if pattern['t'] not in targets:
+            targets.append(pattern['t'])
+            counts[pattern['t']] = 1
+        else:
+            counts[pattern['t']] = counts[pattern['t']] + 1
+    targets.sort()
+    print("Targets: [" + ", ".join(str(t) + "x" + str(counts[t]) for t in targets) + "]")
+    return {'targets':targets, 'counts':counts}
 
 # Creates and empty pattern of the given dimensionality
 def emptyPattern(w, h):
@@ -57,22 +62,39 @@ class PatternSet:
             self.inputMagX = len(self.patterns[0]['p'][0])
             self.inputMagY = len(self.patterns[0]['p'])
 
+        targetsWithCounts = findUniqueTargets(self.patterns)
+        self.targets = targetsWithCounts['targets']
+        self.counts = targetsWithCounts['counts']
+
         random.shuffle(self.patterns)
         print(str(len(self.patterns)) + " Patterns Available (" + str(self.inputMagY) + "x" + str(self.inputMagX) + ")")
 
-        # Construct Centers but base them only off the cases to be trained with
-        self.targets = findUniqueTargets(self.patterns)
+        # Use this if we wish each category to have the same number of patterns for it
+        keys = self.counts.keys()
+        minPatternCount = self.counts[max(self.counts)]
+        patternTargetSets = {}
+        self.newPatterns = []
+        for key in keys:
+            patternTargetSets[key] = []
+            for pat in self.patterns:
+                if pat['t'] == key:
+                    patternTargetSets[key].append(pat)
+            patternTargetSets[key] = patternTargetSets[key][:minPatternCount]
+            self.newPatterns = self.newPatterns + patternTargetSets[key]
+        self.patterns = self.newPatterns
+        self.count = len(self.patterns)
+
+        targetsWithCounts = findUniqueTargets(self.patterns)
+        self.targets = targetsWithCounts['targets']
+        self.counts = targetsWithCounts['counts']
 
         # Architecture has 1 output node for each digit / letter
         # Assemble our target and confusion matrix
         keys = self.targets
         keys.sort()
-        print("Targets: [" + ', '.join(str(k).split('.')[0] for k in keys) + "]")
         self.confusionMatrix = {}
         self.targetMatrix = {}
         index = 0
-
-        # Initialize Confusion Matrix and Target Matrix
         for key in keys:
             self.confusionMatrix[key] = [0.0] * len(keys)
             self.targetMatrix[key] = [0] * len(keys)
