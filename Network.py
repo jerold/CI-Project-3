@@ -33,14 +33,14 @@ def sigmoidal(parameter):
     """Activation Funtion used by the Neurons during feed forward"""
     return math.tanh(parameter)
 
-def outputError(p, q):
+def outputError1(p, q):
     """Combined sum of the difference between two vectors"""
     errSum = 0.0
     for i in range(len(p)):
         errSum = errSum + math.fabs(p[i] - q[i])
     return errSum
 
-def outputError1(target, inVals):
+def outputError(target, inVals):
     """Simple Correct or incorrect rating for the result"""
     maxIndex = 0
     maxValue = 0
@@ -95,6 +95,7 @@ class Net:
     def run(self, mode, startIndex, endIndex):
         patterns = self.patternSet.patterns
         Net.trainingStrategy.trainingMode = mode
+        Net.trainingStrategy.patternCount = endIndex - startIndex
         print("Mode[" + PatternType.desc(mode) + ":" + str(endIndex - startIndex) + "]")
         startTime = time.time()
 
@@ -110,8 +111,10 @@ class Net:
                         self.layers[NetLayerType.Input].feedForward()
                         Net.trainingStrategy.updateMemberFitness(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs()))
                     if Net.trainingStrategy.runningChildren:
+                        Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness = Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness/(endIndex - startIndex)
                         print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "]")
                     else:
+                        Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness = Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness/(endIndex - startIndex)
                         print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "]")                        
                     Net.trainingStrategy.continueToNextMember()
                 Net.trainingStrategy.continueToNextGeneration()
@@ -253,7 +256,7 @@ if __name__=="__main__":
 
     print("Weight Architecture:")
     # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
-    hiddenArchitecture = [20, 10] # hidden layer is a new index in this list, value = number of neurons in that layer
+    hiddenArchitecture = [12, 12] # hidden layer is a new index in this list, value = number of neurons in that layer
     TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
     Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))

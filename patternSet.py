@@ -7,6 +7,7 @@ import math
 
 def findUniqueTargets(patterns):
     targets = []
+    counts = []
     for pattern in patterns:
         targets.append(pattern['t'])
     targets = list(set(targets))
