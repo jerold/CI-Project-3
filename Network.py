@@ -242,21 +242,21 @@ class Neuron:
     
 #Main
 if __name__=="__main__":
-    trainPercentage = 0.5
+    trainPercentage = 0.8
     attributeNeuronMultiplier = 2
     populationSize = 40
     
-    p = PatternSet('data/adult/adult.json', trainPercentage)        # Train:26048 @ 1x16 # same as above
-    # p = PatternSet('data/car/car.json', trainPercentage)            # Train:1382 @ 1x16 # same as above
-    # p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 10992 @ 1x16 # same as above
-    # p = PatternSet('data/block/pageblocks.json', trainPercentage)
+    #p = PatternSet('data/adult/adult.json', trainPercentage)        # Cases:32561 @ 1x16 # same as above
+    p = PatternSet('data/car/car.json', trainPercentage)            # Cases:1382 @ 1x16 # same as above
+    #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # Cases:10992 @ 1x16 # same as above
+    #p = PatternSet('data/block/pageblocks.json', trainPercentage)
 
     print("Weight Architecture:")
     # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
-    hiddenArchitecture = [40, 20] # hidden layer is a new index in this list, value = number of neurons in that layer
+    hiddenArchitecture = [20, 10] # hidden layer is a new index in this list, value = number of neurons in that layer
     TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
     Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
-    Net.trainingStrategy.initPopulation(populationSize, (-0.3, 0.3))
+    Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
         
     n = Net(p, hiddenArchitecture)
     n.run(PatternType.Train, 0, int(p.count*trainPercentage))

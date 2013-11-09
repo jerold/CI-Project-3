@@ -16,6 +16,9 @@ class TrainingStrategyType:
                 self.GeneticAlgorithm: "GeneticAlgorithm",
                 self.DifferentialGA: "DifferentialGA"}[x]
 
+def recordItems(recordString):
+    with open('Strategy.log', 'a') as file:
+        file.write(recordString + '\n')        
 
 class Member():
     memberIdInc = 0
@@ -77,13 +80,13 @@ class TrainingStrategy(object):
         return self.population[self.currentMember].adjustFitness(error)
 
     def fitnessThresholdMet(self):
-        if self.generation > 10:
+        if self.generation > 600:
             return True
         if len(self.alphas) < 1:
             return False
         if self.alphas[0].fitness <= self.fitnessThreshold:
             return True
-        self.resetPopulationFitness()
+        # self.resetPopulationFitness()
         return False
 
     def averageFitness(self):
@@ -181,11 +184,11 @@ class EvolutionStrategy(TrainingStrategy):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.EvolutionStrategy
         self.lam = 1.0
-        self.strongerParentPreference = .75
+        self.strongerParentPreference = .5
         self.runningChildren = False
-        self.fitnessThreshold = 900
+        self.fitnessThreshold = 10
         self.useSigmas = True
-        self.sigmaMax = .1
+        self.sigmaMax = .001
         self.childSuccess = 0.0
         self.highestCurrentMemberId = 0
 
@@ -219,7 +222,7 @@ class EvolutionStrategy(TrainingStrategy):
         print("G:" + str(self.generation) + " Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
         
         self.generation = self.generation + 1
-        self.currentMember = 0
+        # self.currentMember = 0
         self.runningChildren = False
         self.currentChildMember = 0
         self.childPopulation = []
@@ -307,8 +310,9 @@ class EvolutionStrategy(TrainingStrategy):
         if self.population[0] not in self.alphas and (len(self.alphas) == 0 or self.population[0].fitness < self.alphas[0].fitness):
             self.alphas.append(self.population[0])
             self.alphas.sort(key=lambda x: x.fitness, reverse=False)
-        print("New Pop: " + " ".join(str(int(m.fitness)) for m in self.population))
-        print("Alphas: " + " ".join(str(int(m.fitness)) for m in self.alphas))
+        # print("New Pop: " + " ".join(str(int(m.fitness)) for m in self.population))
+        # print("Alphas: " + " ".join(str(int(m.fitness)) for m in self.alphas))
+        recordItems(", ".join(str(int(m.fitness)) for m in self.population) + ", " + str(self.childSuccess))
         self.childSuccess = 0.0
         for member in self.population:
             if member.id > self.highestCurrentMemberId:
