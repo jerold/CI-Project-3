@@ -33,14 +33,14 @@ def sigmoidal(parameter):
     """Activation Funtion used by the Neurons during feed forward"""
     return math.tanh(parameter)
 
-def outputError1(p, q):
+def outputError(p, q):
     """Combined sum of the difference between two vectors"""
     errSum = 0.0
     for i in range(len(p)):
         errSum = errSum + math.fabs(p[i] - q[i])
     return errSum
 
-def outputError(target, inVals):
+def outputError1(target, inVals):
     """Simple Correct or incorrect rating for the result"""
     maxIndex = 0
     maxValue = 0
@@ -109,6 +109,7 @@ class Net:
                         # Run each Pattern Through each member configuration, updating member weights with each pass
                         self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
                         self.layers[NetLayerType.Input].feedForward()
+                        #print("Pattern Error: " + str(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs())))
                         Net.trainingStrategy.updateMemberFitness(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs()))
                     if Net.trainingStrategy.runningChildren:
                         Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness = Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness/(endIndex - startIndex)
@@ -262,7 +263,9 @@ if __name__=="__main__":
     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
         
     n = Net(p, hiddenArchitecture)
-    n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-    n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+    # n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+    # n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+    n.run(PatternType.Train, 0, 260)
+    n.run(PatternType.Test, 0, 260)
     p.printConfusionMatrix()
     print("Done")

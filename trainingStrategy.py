@@ -55,10 +55,9 @@ class TrainingStrategy(object):
         self.strategy = 4
         self.generation = 0
         self.currentMember = 0
-        self.fitnessThreshold = .9
+        self.fitnessThreshold = .10
         self.population = []
         self.populationSize = 0
-        self.patternCount = 0
 
         self.trainingMode = Network.PatternType.Train
         self.lam = 1
@@ -187,7 +186,7 @@ class EvolutionStrategy(TrainingStrategy):
         self.lam = 1.0
         self.strongerParentPreference = .5
         self.runningChildren = False
-        self.fitnessThreshold = .10
+        self.fitnessThreshold = .6
         self.useSigmas = True
         self.sigmaMax = .001
         self.childSuccess = 0.0
@@ -220,7 +219,7 @@ class EvolutionStrategy(TrainingStrategy):
     def continueToNextGeneration(self):
         self.repopulate()
         #print("G:" + str(self.generation) + " F[" + ", ".join(str(int(m.fitness)) for m in self.population) + "] Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
-        print("G:" + str(self.generation) + " Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
+        print("G:" + str(self.generation) + " Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
         
         self.generation = self.generation + 1
         # self.currentMember = 0
@@ -255,7 +254,8 @@ class EvolutionStrategy(TrainingStrategy):
         dads = random.sample(self.population, self.lam)
         #for p in parents:
         #    print(str(p[0].fitness) + " " + str(p[1].fitness))
-        return list(zip(moms, dads))
+        for i in range(self.lam):
+            yield [moms[i], dads[i]]
 
     def crossover(self, parents):
         #Uniform Crossover, produces 1 child per pair of parents

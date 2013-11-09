@@ -66,9 +66,6 @@ class PatternSet:
         self.targets = targetsWithCounts['targets']
         self.counts = targetsWithCounts['counts']
 
-        random.shuffle(self.patterns)
-        print(str(len(self.patterns)) + " Patterns Available (" + str(self.inputMagY) + "x" + str(self.inputMagX) + ")")
-
         # Use this if we wish each category to have the same number of patterns for it
         keys = self.counts.keys()
         minPatternCount = self.counts[max(self.counts)]
@@ -87,6 +84,9 @@ class PatternSet:
         targetsWithCounts = findUniqueTargets(self.patterns)
         self.targets = targetsWithCounts['targets']
         self.counts = targetsWithCounts['counts']
+
+        random.shuffle(self.patterns)
+        print(str(len(self.patterns)) + " Patterns Available (" + str(self.inputMagY) + "x" + str(self.inputMagX) + ")")
 
         # Architecture has 1 output node for each digit / letter
         # Assemble our target and confusion matrix
