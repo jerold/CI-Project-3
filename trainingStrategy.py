@@ -107,7 +107,7 @@ class TrainingStrategy(object):
         for p in parents:
             print(str(p[0].fitness) + " " + str(p[1].fitness))
         self.childPopulation = self.crossover(parents)
-        self.childPopulation = self.mutate(child)
+        self.childPopulation = self.mutate(self.childPopulation)
         self.repopulate()
 
         self.generation = self.generation + 1
@@ -326,6 +326,7 @@ class GeneticAlgorithm(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.GeneticAlgorithm
+        self.
 
     def select(self):
         return random.sample(self.population, 8)

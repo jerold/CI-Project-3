@@ -84,6 +84,16 @@ def printPatterns(pattern):
     else:
         print(', '.join(str(round(x, 3)) for x in pattern))
 
+def saveWeights(net):
+    with open('alpha.csv', 'a') as file:
+        for layer in net.layers[1:]:
+            for neuron in layer.neurons:
+                temp = ''
+                for weight in neuron.weight:
+                    temp += str(weight) + ','
+                file.write(temp[:-1] + '\n')
+
+
 
 class Network:
     def __init__(self, patternSet):
@@ -264,6 +274,7 @@ if __name__=="__main__":
 
     n = Network(p)
     n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+    saveWeights(n)
     n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
 
     p.printConfusionMatrix()
