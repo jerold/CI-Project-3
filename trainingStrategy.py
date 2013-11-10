@@ -20,6 +20,27 @@ def recordItems(recordString):
     with open('Strategy.log', 'a') as file:
         file.write(recordString + '\n')        
 
+def avgSigma(population):
+    sigSum = 0.0
+    sigCount = 0
+    for member in population:
+        ms = Network.vectorizeMatrix(member.sigmas)
+        for singleSigma in ms:
+            sigSum = sigSum + singleSigma
+            sigCount = sigCount + 1
+    return sigSum/sigCount
+
+def memberVarience(population, alpha):
+    diffSum = 0.0
+    for member in population:
+        mg = Network.vectorizeMatrix(member.genome)
+        ag = Network.vectorizeMatrix(alpha.genome)
+        diffSum = diffSum + Network.outputError(mg, ag)
+    return diffSum/len(population)
+
+def averageFitness(population):
+    return sum(x.fitness for x in population)/len(population)
+
 class Member():
     memberIdInc = 0
     genomeTemplate = [] # example [3, 3, 3, 3, 4, 4] Input layer has 3 nodes, Hidden has 4, output has 2
@@ -64,17 +85,18 @@ class TrainingStrategy(object):
         self.strategy = 4
         self.generation = 0
         self.currentMember = 0
-        self.fitnessThreshold = .10
-        self.population = []
-        self.populationSize = 0
+        self.currentChildMember = 0
         self.runningChildren = False
+        self.fitnessThreshold = .10
+        self.populationSize = 0
+        self.population = []
+        self.childPopulation = []
+        self.alphas = [] # a list of the best members from each generation current best is [-1]
         self.trainingMode = Network.PatternType.Train
         self.lam = 1
         self.useSigmas = False
         self.sigmaMax = 1
-        self.currentChildMember = 0
-        self.childPopulation = []
-        self.alphas = [] # a list of the best members from each generation current best is [-1]
+        self.maxGenerations = 25
 
     @classmethod
     def getTrainingStrategyOfType(self, type=3):
@@ -89,7 +111,7 @@ class TrainingStrategy(object):
         return self.population[self.currentMember].adjustFitness(error)
 
     def fitnessThresholdMet(self):
-        if self.generation > 80:
+        if self.generation > self.maxGenerations:
             return True
         if len(self.alphas) < 1:
             return False
@@ -98,8 +120,14 @@ class TrainingStrategy(object):
         # self.resetPopulationFitness()
         return False
 
+    def avgSigma(self):
+        return avgSigma(self.population)
+
+    def memberVarience(self):
+        return memberVarience(self.population, self.alphas[0])
+
     def averageFitness(self):
-        return sum(x.fitness for x in self.population)/len(self.population)
+        return averageFitness(self.population)
 
     def moreMembers(self):
         if self.currentMember < len(self.population):
@@ -167,24 +195,6 @@ class TrainingStrategy(object):
             return self.alphas[0].setGenesAtPosition(neuronNumber)
         return self.population[self.currentMember].setGenesAtPosition(neuronNumber, weights)
 
-    def avgSigma(self):
-        sigSum = 0.0
-        sigCount = 0
-        for member in self.population:
-            ms = Network.vectorizeMatrix(member.sigmas)
-            for singleSigma in ms:
-                sigSum = sigSum + singleSigma
-                sigCount = sigCount + 1
-        return sigSum/sigCount
-
-    def memberVarience(self):
-        diffSum = 0.0
-        for member in self.population:
-            mg = Network.vectorizeMatrix(member.genome)
-            ag = Network.vectorizeMatrix(self.alphas[0].genome)
-            diffSum = diffSum + Network.outputError(mg, ag)
-        return diffSum/len(self.population)
-
     def select(self):
         """Returns a list of parents chosen for crossover"""
         raise("Instance of an Abstract Class... Bad Juju!")
@@ -213,11 +223,13 @@ class EvolutionStrategy(TrainingStrategy):
         self.lam = 1.0
         self.strongerParentPreference = .5
         self.runningChildren = False
-        self.fitnessThreshold = .0005
+        self.fitnessThreshold = .00005
         self.useSigmas = True
         self.sigmaMax = .001
         self.childSuccess = 0.0
         self.highestCurrentMemberId = 0
+        self.maxGenerations = 80
+        self.alphaCategoryMap = {}
 
     def moreMembers(self):
         """In order to calulate fitness on the chilren we'll do selection, crossover, and mutation
@@ -238,15 +250,17 @@ class EvolutionStrategy(TrainingStrategy):
         return False
     
     def continueToNextMember(self):
-        if not self.runningChildren:
-            self.currentMember = self.currentMember + 1
+        if self.trainingMode == Network.PatternType.Test:
+            self.currentAlphaMember = self.currentAlphaMember + 1
         else:
-            self.currentChildMember = self.currentChildMember + 1
-        
+            if not self.runningChildren:
+                self.currentMember = self.currentMember + 1
+            else:
+                self.currentChildMember = self.currentChildMember + 1
+            
     def continueToNextGeneration(self):
         self.repopulate()
         #print("G:" + str(self.generation) + " F[" + ", ".join(str(int(m.fitness)) for m in self.population) + "] Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
-        print("G:" + str(self.generation) + " CC:[" + ",".join(str(m.categoryCoverage) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 3)) + " Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
         
         self.generation = self.generation + 1
         # self.currentMember = 0
@@ -276,13 +290,38 @@ class EvolutionStrategy(TrainingStrategy):
         return self.childPopulation[self.currentChildMember].setGenesAtPosition(neuronNumber)
 
     def select(self):
-        # elites = self.population[:self.populationSize/2]
+        return self.selectStandardES()
+        #return self.selectByCategory()
+
+    def selectStandardES(self):
+        # Select lambda pairs of parents to produce 1 child each
         moms = random.sample(self.population, self.lam)
         dads = random.sample(self.population, self.lam)
-        #for p in parents:
-        #    print(str(p[0].fitness) + " " + str(p[1].fitness))
         for i in range(self.lam):
+            #print(str(moms[i].categoryCoverage) + " : " + str(dads[i].categoryCoverage))
             yield [moms[i], dads[i]]
+
+    # def selectByCategory(self):
+    #     # Select lambda pairs of parents to produce 1 child each
+    #     moms = random.sample(self.population, self.lam)
+    #     dads = random.sample(self.population, self.lam)
+    #     parentsByCategory = {}
+    #     for mom in moms:
+    #         for momCategories in mom.categoryCoverage:
+    #             if momCategories not in parentsByCategory.keys():
+    #                 parentsByCategory[momCategories] = {'moms':[], 'dads':[]}
+    #             parentsByCategory[momCategories]['moms'].append(mom)
+    #     for dad in dads:
+    #         for dadCategories in dad.categoryCoverage:
+    #             if dadCategories not in parentsByCategory.keys():
+    #                 parentsByCategory[momCategories] = {'moms':[], 'dads':[]}
+    #             parentsByCategory[dadCategories]['dads'].append(dad)
+    #     for category in parentsByCategory.keys():
+    #         for i, mom in enumerate(parentsByCategory[category]['moms']):
+    #             if len(parentsByCategory[category]['dads']) > i:
+    #                 dad = parentsByCategory[category]['dads'][i]
+    #                 # print(str(mom.categoryCoverage) + " : " + str(dad.categoryCoverage))
+    #                 yield [mom, dad]
 
     def crossover(self, parents):
         #Uniform Crossover, produces 1 child per pair of parents
@@ -327,28 +366,58 @@ class EvolutionStrategy(TrainingStrategy):
         return 0
 
     def repopulate(self):
+        self.repopulateStandardES()
+        #self.repopulateByCategory()
+
+    def repopulateStandardES(self):
         # (m+l)-ES
-        #if self.generation > 0 and self.generation%20 == 0:
-        #    print("Mass Extinction Event")
-        #    self.initPopulation(self.populationSize, [-0.3, 0.3])
-        #    self.childPopulation = self.crossover(zip(self.population, self.alphas[:self.lam]))
-        #if self.population[0] in self.alphas:
-        #    self.population = self.population[1:]
         oldAndNew = self.population + self.childPopulation
         oldAndNew.sort(key=lambda x: x.fitness, reverse=False)
         self.population = oldAndNew[:self.populationSize]
         if self.population[0] not in self.alphas and (len(self.alphas) == 0 or self.population[0].fitness < self.alphas[0].fitness):
             self.alphas.append(self.population[0])
             self.alphas.sort(key=lambda x: x.fitness, reverse=False)
-        # print("New Pop: " + " ".join(str(int(m.fitness)) for m in self.population))
-        # print("Alphas: " + " ".join(str(int(m.fitness)) for m in self.alphas))
         recordItems(", ".join(str(int(m.fitness)) for m in self.population) + ", " + str(self.childSuccess))
         self.childSuccess = 0.0
         for member in self.population:
             if member.id > self.highestCurrentMemberId:
                 self.childSuccess = self.childSuccess + 1
         self.childSuccess = self.childSuccess/self.populationSize
-                
+        print("G:" + str(self.generation) + " CC:[" + ", ".join(str(m.categoryCoverage) + ":" + str(round(m.fitness, 4)) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 4)) + " Alph:" + str(round(self.alphas[0].fitness, 4)) + " Avg: " + str(round(self.averageFitness(), 4)) + " P:" + str(round(self.childSuccess, 4)))
+ 
+    # def repopulateByCategory(self):
+    #     newPopulationByCategory = {}
+    #     for member in self.population + self.childPopulation:
+    #         catagorized = False
+    #         for memCategory in member.categoryCoverage:
+    #             if memCategory not in newPopulationByCategory.keys():
+    #                 newPopulationByCategory[memCategory] = []
+    #             if not catagorized:
+    #                 # Add to Alphas if member meets criteria
+    #                 if memCategory not in self.alphaCategoryMap.keys():
+    #                     self.alphas.append(member)
+    #                     self.alphaCategoryMap[memCategory] = len(self.alphas)-1
+    #                 elif member.fitness < self.alphas[self.alphaCategoryMap[memCategory]].fitness:
+    #                     self.alphas[self.alphaCategoryMap[memCategory]] = member
+    #                 newPopulationByCategory[memCategory].append(member)
+    #                 catagorized = True
+    #     catCount = len(newPopulationByCategory.keys())
+    #     oldAndNew = []
+    #     print("Alphas: " + str(len(self.alphas)) + " " + ", ".join(str(a.categoryCoverage[0]) + ":" + str(round(a.fitness*1000, 3)) for a in self.alphas))
+    #     for category in newPopulationByCategory.keys():
+    #         newPopulationByCategory[category].sort(key=lambda x: x.fitness, reverse=False)
+    #         oldAndNew = oldAndNew + newPopulationByCategory[category][:int(self.populationSize/catCount)]
+    #         print("G:" + str(self.generation) + " CC:" + ",".join(str(m.categoryCoverage) for m in newPopulationByCategory[category][:int(self.populationSize/catCount)]) + " Alph:" + str(round(self.alphas[self.alphaCategoryMap[category]].fitness*1000, 3)) + " Avg: " + str(round(averageFitness(newPopulationByCategory[category][:int(self.populationSize/catCount)])*1000, 3)))
+    #         # print("G:" + str(self.generation) + " CC:[" + ",".join(str(m.categoryCoverage) for m in newPopulationByCategory[category][:int(self.populationSize/catCount)]) + "] AvgSig:" + str(round(avgSigma(newPopulationByCategory[category][:int(self.populationSize/catCount)]), 3)) + " MemVar:" + str(round(memberVarience(newPopulationByCategory[category][:int(self.populationSize/catCount)], self.alphas[0]), 3)) + " Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(averageFitness(newPopulationByCategory[category][:int(self.populationSize/catCount)]), 3)))
+    #     self.population = oldAndNew
+    #     # recordItems(", ".join(str(int(m.fitness)) for m in self.population) + ", " + str(self.childSuccess))
+    #     self.childSuccess = 0.0
+    #     for member in self.population:
+    #         if member.id > self.highestCurrentMemberId:
+    #             self.childSuccess = self.childSuccess + 1
+    #     self.childSuccess = self.childSuccess/self.populationSize
+    #     print("P:" + str(round(self.childSuccess, 3)))
+
 
 
 class GeneticAlgorithm(TrainingStrategy):

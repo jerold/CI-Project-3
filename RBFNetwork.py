@@ -11,7 +11,7 @@ import trainingStrategy
 eta = 1.00
 
 # Enum for Pattern Type ( Also used as Net running Mode)
-class PatternType:
+class PatternType:resetPopulationFitness
     Train, Test, Validate = range(3)
 
     @classmethod
