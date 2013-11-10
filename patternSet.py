@@ -67,35 +67,35 @@ class PatternSet:
         self.counts = targetsWithCounts['counts']
 
         # Use this if we wish each category to have the same number of patterns for it
-        keys = self.counts.keys()
-        minPatternCount = 9999
-        maxPatternCount = 0
-        patternTargetSets = {}
-        self.newPatterns = []
-        for key in keys:
-            if minPatternCount > self.counts[key]:
-                minPatternCount = self.counts[key]
-            if maxPatternCount < self.counts[key]:
-                maxPatternCount = self.counts[key]
-        for key in keys:
-            patternTargetSets[key] = []
-            for pat in self.patterns:
-                if pat['t'] == key:
-                    patternTargetSets[key].append(pat)
-            setMultiplier = 0
-            while setMultiplier*len(patternTargetSets[key]) < maxPatternCount:
-                if (setMultiplier+1)*len(patternTargetSets[key]) > maxPatternCount:
-                    addAmount = (setMultiplier+1)*len(patternTargetSets[key]) - maxPatternCount
-                    self.newPatterns = self.newPatterns + patternTargetSets[key][:addAmount]
-                else:
-                    self.newPatterns = self.newPatterns + patternTargetSets[key]
-                setMultiplier = setMultiplier + 1
-        self.patterns = self.newPatterns
-        self.count = len(self.patterns)
-
-        targetsWithCounts = findUniqueTargets(self.patterns)
-        self.targets = targetsWithCounts['targets']
-        self.counts = targetsWithCounts['counts']
+        # keys = self.counts.keys()
+        # minPatternCount = 9999
+        # maxPatternCount = 0
+        # patternTargetSets = {}
+        # self.newPatterns = []
+        # for key in keys:
+        #     if minPatternCount > self.counts[key]:
+        #         minPatternCount = self.counts[key]
+        #     if maxPatternCount < self.counts[key]:
+        #         maxPatternCount = self.counts[key]
+        # for key in keys:
+        #     patternTargetSets[key] = []
+        #     for pat in self.patterns:
+        #         if pat['t'] == key:
+        #             patternTargetSets[key].append(pat)
+        #     setMultiplier = 0
+        #     while setMultiplier*len(patternTargetSets[key]) < maxPatternCount:
+        #         if (setMultiplier+1)*len(patternTargetSets[key]) > maxPatternCount:
+        #             addAmount = (setMultiplier+1)*len(patternTargetSets[key]) - maxPatternCount
+        #             self.newPatterns = self.newPatterns + patternTargetSets[key][:addAmount]
+        #         else:
+        #             self.newPatterns = self.newPatterns + patternTargetSets[key]
+        #         setMultiplier = setMultiplier + 1
+        # self.patterns = self.newPatterns
+        # self.count = len(self.patterns)
+        #
+        # targetsWithCounts = findUniqueTargets(self.patterns)
+        # self.targets = targetsWithCounts['targets']
+        # self.counts = targetsWithCounts['counts']
 
         random.shuffle(self.patterns)
         print(str(len(self.patterns)) + " Patterns Available (" + str(self.inputMagY) + "x" + str(self.inputMagX) + ")")

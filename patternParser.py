@@ -27,7 +27,10 @@ adult = {'inFiles':['data/adult/adult.data'],
              'width':15,
              'height':1}
 
-
+wine = {'inFiles':['data/wine/wine.data'],
+             'outFile':'data/wine/wine.json',
+             'width':14,
+             'height':1}
 
 def parseAdult(lines):
     patSet = []
@@ -156,6 +159,28 @@ def parseBlock(lines):
         print(len(set(attribute)))
     return patSet
 
+def parseWine(lines):
+    patSet = []
+    attributes = [[] for _ in range(13)]
+    targets = []
+    for line in lines:
+        line = line.strip('\n')
+        line = line.split(',')
+        patternTarget = int(line[0])
+        pattern = line[1:len(line)]
+        for i, elem in enumerate(line[1:]):
+            pattern[i] = float(pattern[i])
+            attributes[i].append(float(elem))
+
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(len(set(attribute)))
+    return patSet
 
 def mygrouper(n, iterable):
     "http://stackoverflow.com/questions/1624883/alternative-way-to-split-a-list-into-groups-of-n"
@@ -334,11 +359,12 @@ def printPattern(pattern):
 
 
 if __name__=="__main__":
-    parseSets = [pageBlock, car, flare, adult]
+    #parseSets = [pageBlock, car, flare, adult, wine]
     #parseSet = pageBlock
     #parseSets = [car]
     #parseSet = flare
-    parseSets = [adult]
+    #parseSets = [adult]
+    parseSets = [wine]
     
     for parseSet in parseSets:
         lines = []
@@ -357,6 +383,9 @@ if __name__=="__main__":
             patternSet = parseFlare(lines)
         elif parseSet['outFile'] == adult['outFile']:
             patternSet = parseAdult(lines)
+        elif parseSet['outFile'] == wine['outFile']:
+            patternSet = parseWine(lines)
+
             
         # print("pats: " + str(len(patternSet)))
         with open(parseSet['outFile'], 'w+') as outfile:

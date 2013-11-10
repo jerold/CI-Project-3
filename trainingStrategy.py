@@ -80,7 +80,7 @@ class TrainingStrategy(object):
         return self.population[self.currentMember].adjustFitness(error)
 
     def fitnessThresholdMet(self):
-        if self.generation > 15:
+        if self.generation > 25:
             return True
         if len(self.alphas) < 1:
             return False
@@ -204,7 +204,7 @@ class EvolutionStrategy(TrainingStrategy):
         self.lam = 1.0
         self.strongerParentPreference = .5
         self.runningChildren = False
-        self.fitnessThreshold = .6
+        self.fitnessThreshold = .05
         self.useSigmas = True
         self.sigmaMax = .001
         self.childSuccess = 0.0
