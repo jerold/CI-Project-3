@@ -11,11 +11,20 @@ def findUniqueTargets(patterns):
     for pattern in patterns:
         if pattern['t'] not in targets:
             targets.append(pattern['t'])
-            counts[pattern['t']] = 1
+            try:
+                counts[pattern['t']] = 1
+            except TypeError:
+                counts[str(pattern['t'])] = 1
         else:
-            counts[pattern['t']] = counts[pattern['t']] + 1
+            try:
+                counts[pattern['t']] = counts[pattern['t']] + 1
+            except TypeError:
+                counts[str(pattern['t'])] = counts[str(pattern['t'])] + 1
     targets.sort()
-    print("Targets: [" + ", ".join(str(t) + "x" + str(counts[t]) for t in targets) + "]")
+    try:
+        print("Targets: [" + ", ".join(str(t) + "x" + str(counts[t]) for t in targets) + "]")
+    except TypeError:
+        pass
     return {'targets':targets, 'counts':counts}
 
 # Creates and empty pattern of the given dimensionality
@@ -108,10 +117,16 @@ class PatternSet:
         self.targetMatrix = {}
         index = 0
         for key in keys:
-            self.confusionMatrix[key] = [0.0] * len(keys)
-            self.targetMatrix[key] = [0] * len(keys)
-            self.targetMatrix[key][index] = 1
-            index = index + 1
+            try:
+                self.confusionMatrix[key] = [0.0] * len(keys)
+                self.targetMatrix[key] = [0] * len(keys)
+                self.targetMatrix[key][index] = 1
+                index = index + 1
+            except TypeError:
+                self.confusionMatrix[str(key)] = [0.0] * len(keys)
+                self.targetMatrix[str(key)] = [0] * len(keys)
+                self.targetMatrix[str(key)][index] = 1
+                index = index + 1
         self.outputMag = len(keys)
 
     def printConfusionMatrix(self):

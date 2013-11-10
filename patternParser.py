@@ -39,12 +39,21 @@ yeast = {'inFiles':['data/yeast/yeast.data'],
 
 zoo = {'inFiles':['data/zoo/zoo.data'],
          'outFile':'data/zoo/zoo.json',
-         'width':17,
+         'width':16,
          'height':1}
 
 heart = {'inFiles':['data/heart/heart.data'],
          'outFile':'data/heart/heart.json',
-         'width':17,
+         'width':14,
+         'height':1}
+
+seeds = {'inFiles':['data/seeds/seeds.data'],
+         'outFile':'data/seeds/seeds.json',
+         'width':7,
+         'height':1}
+glass = {'inFiles':['data/glass/glass.data'],
+         'outFile':'data/glass/glass.json',
+         'width':10,
          'height':1}
 
 def parseAdult(lines):
@@ -270,6 +279,54 @@ def parseHeart(lines):
         print(len(set(attribute)))
     return patSet
 
+
+def parseSeeds(lines):
+    patSet = []
+    attributes = [[] for _ in range(7)]
+    targets = []
+    for line in lines:
+        line = line.strip('\n')
+        line = line.split()
+        patternTarget = int(line[-1])
+        pattern = line[:len(line)-1]
+        for i, elem in enumerate(line[:-1]):
+            pattern[i] = float(pattern[i])
+            attributes[i].append(float(elem))
+
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(len(set(attribute)))
+    return patSet
+
+
+def parseGlass(lines):
+    patSet = []
+    attributes = [[] for _ in range(10)]
+    targets = []
+    for line in lines:
+        line = line.strip('\n')
+        line = line.split(',')
+        patternTarget = int(line[-1])
+        pattern = line[:len(line)-1]
+        for i, elem in enumerate(line[:-1]):
+            pattern[i] = float(pattern[i])
+            attributes[i].append(float(elem))
+
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(len(set(attribute)))
+    return patSet
+
 def mygrouper(n, iterable):
     "http://stackoverflow.com/questions/1624883/alternative-way-to-split-a-list-into-groups-of-n"
     args = [iter(iterable)] * n
@@ -447,15 +504,17 @@ def printPattern(pattern):
 
 
 if __name__=="__main__":
-    #parseSets = [pageBlock, car, flare, adult, wine, yeast,zoo,heart]
+    parseSets = [pageBlock, car, flare, adult, wine, yeast,zoo,heart,seeds,glass]
     #parseSet = pageBlock
     #parseSets = [car]
-    #parseSet = flare
+    #parseSets = [flare]
     #parseSets = [adult]
     #parseSets = [wine]
     #parseSets = [yeast]
     #parseSets = [zoo]
-    parseSets = [heart]
+    #parseSets = [heart]
+    #parseSets = [seeds]
+    #parseSets = [glass]
 
     for parseSet in parseSets:
         lines = []
@@ -482,6 +541,10 @@ if __name__=="__main__":
             patternSet = parseZoo(lines)
         elif parseSet['outFile'] == heart['outFile']:
             patternSet = parseHeart(lines)
+        elif parseSet['outFile'] == seeds['outFile']:
+            patternSet = parseSeeds(lines)
+        elif parseSet['outFile'] == glass['outFile']:
+            patternSet = parseGlass(lines)
             
         # print("pats: " + str(len(patternSet)))
         with open(parseSet['outFile'], 'w+') as outfile:

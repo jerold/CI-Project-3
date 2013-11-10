@@ -193,8 +193,12 @@ class Network:
                 prevlayer = layer.prev
             for neuron in layer.neurons:
                 for k, weight in enumerate(neuron.weight):
-                    neuron.weightChange[k] = learningRate * neuron.error * prevlayer.neurons[k].output + momentum * neuron.weightChange[k]
-                    neuron.weight[k] += neuron.weightChange[k]
+                    try:
+                        neuron.weightChange[k] = learningRate * neuron.error * prevlayer.neurons[k].output + momentum * neuron.weightChange[k]
+                        neuron.weight[k] += neuron.weightChange[k]
+                    except TypeError:
+                        neuron.weightChange[k] = learningRate * neuron.error * float(prevlayer.neurons[k].output) + momentum * neuron.weightChange[k]
+                        neuron.weight[k] += neuron.weightChange[k]
 
 
 class Layer:
@@ -224,7 +228,10 @@ class Layer:
                 neuron.inputSum = 0
                 for weight in neuron.weight:
                     for output in prevOutputs:
-                        neuron.inputSum += output * weight
+                        try:
+                            neuron.inputSum += output * weight
+                        except TypeError:
+                            neuron.inputSum += float(output) * weight
                 neuron.output = learningRate * neuron.activate(neuron.inputSum)
         elif self.layerType == NetLayerType.Output:
             prevOutputs = self.prev.getOutputs()
@@ -265,18 +272,34 @@ class Neuron:
 #Main
 if __name__=="__main__":
     trainPercentage = 0.8
-    #p = PatternSet('data/optdigits/optdigits-orig.json', trainPercentage, True)   # 32x32
-    #p = PatternSet('data/letter/letter-recognition.json', trainPercentage, True)  # 1x16 # Try 1 center per attribute, and allow outputs to combine them
-    #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # 1x16 # same as above
-    #p = PatternSet('data/block/pageblocks.json', trainPercentage)            # 16x16 # Training set is very limited
-    #p = PatternSet('data/adult/adult.json', trainPercentage)           # 16x16 # Training set is very limited
-    p = PatternSet('data/car/car.json', trainPercentage)        # 8x8
-    #for e in range(1, 20):
+    patterns = []
+    p = PatternSet('data/adult/adult.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/block/pageblocks.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/heart/heart.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/glass/glass.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/flare/flare.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/car/car.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/seeds/seeds.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/wine/wine.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/yeast/yeast.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/zoo/zoo.json', trainPercentage)
+    patterns.append(p)
 
-    n = Network(p)
-    n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-    saveWeights(n)
-    n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
 
+    for p in patterns:
+        n = Network(p)
+        n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+        saveWeights(n)
+        n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+        p.saveConfusionMatrix()
     p.printConfusionMatrix()
     print("Done")
