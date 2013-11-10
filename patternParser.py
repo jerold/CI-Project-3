@@ -32,6 +32,21 @@ wine = {'inFiles':['data/wine/wine.data'],
              'width':14,
              'height':1}
 
+yeast = {'inFiles':['data/yeast/yeast.data'],
+         'outFile':'data/yeast/yeast.json',
+         'width':9,
+         'height':1}
+
+zoo = {'inFiles':['data/zoo/zoo.data'],
+         'outFile':'data/zoo/zoo.json',
+         'width':17,
+         'height':1}
+
+heart = {'inFiles':['data/heart/heart.data'],
+         'outFile':'data/heart/heart.json',
+         'width':17,
+         'height':1}
+
 def parseAdult(lines):
     patSet = []
     attributes = [[] for _ in range(14)]
@@ -137,6 +152,31 @@ def parseCar(lines):
         print(set(attribute))
     return patSet
 
+
+def parseYeast(lines):
+    patSet = []
+    attributes = [[] for _ in range(8)]
+    targets = []
+    targetsAlt = {'CYT':1, 'NUC':2, 'MIT':3, 'ME3':4, 'ME2':5, 'ME1':6, 'EXC':7,
+                  'VAC':8, 'POX':9, 'ERL':10}
+    for line in lines:
+        line = line.split('\n')[0]
+        line = line.split()
+        pattern = line[1:len(line)-1]
+        for i, elem in enumerate(pattern):
+            pattern[i] = float(elem)
+            attributes[i].append(pattern[i])
+        patternTarget = targetsAlt[line[len(line)-1]]
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(set(attribute))
+    return patSet
+
 def parseBlock(lines):
     patSet = []
     attributes = [[] for _ in range(10)]
@@ -167,6 +207,54 @@ def parseWine(lines):
         line = line.strip('\n')
         line = line.split(',')
         patternTarget = int(line[0])
+        pattern = line[1:len(line)]
+        for i, elem in enumerate(line[1:]):
+            pattern[i] = float(pattern[i])
+            attributes[i].append(float(elem))
+
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(len(set(attribute)))
+    return patSet
+
+
+def parseZoo(lines):
+    patSet = []
+    attributes = [[] for _ in range(16)]
+    targets = []
+    for line in lines:
+        line = line.strip('\n')
+        line = line.split(',')
+        patternTarget = int(line[-1])
+        pattern = line[1:len(line)-1]
+        for i, elem in enumerate(line[1:len(line)-1]):
+            pattern[i] = int(pattern[i])
+            attributes[i].append(int(elem))
+
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(len(set(attribute)))
+    return patSet
+
+
+def parseHeart(lines):
+    patSet = []
+    attributes = [[] for _ in range(13)]
+    targets = []
+    for line in lines:
+        line = line.strip('\n')
+        line = line.split()
+        patternTarget = int(line[-1])-1
         pattern = line[1:len(line)]
         for i, elem in enumerate(line[1:]):
             pattern[i] = float(pattern[i])
@@ -359,13 +447,16 @@ def printPattern(pattern):
 
 
 if __name__=="__main__":
-    #parseSets = [pageBlock, car, flare, adult, wine]
+    #parseSets = [pageBlock, car, flare, adult, wine, yeast,zoo,heart]
     #parseSet = pageBlock
     #parseSets = [car]
     #parseSet = flare
     #parseSets = [adult]
-    parseSets = [wine]
-    
+    #parseSets = [wine]
+    #parseSets = [yeast]
+    #parseSets = [zoo]
+    parseSets = [heart]
+
     for parseSet in parseSets:
         lines = []
         for fileName in parseSet['inFiles']:
@@ -385,7 +476,12 @@ if __name__=="__main__":
             patternSet = parseAdult(lines)
         elif parseSet['outFile'] == wine['outFile']:
             patternSet = parseWine(lines)
-
+        elif parseSet['outFile'] == yeast['outFile']:
+            patternSet = parseYeast(lines)
+        elif parseSet['outFile'] == zoo['outFile']:
+            patternSet = parseZoo(lines)
+        elif parseSet['outFile'] == heart['outFile']:
+            patternSet = parseHeart(lines)
             
         # print("pats: " + str(len(patternSet)))
         with open(parseSet['outFile'], 'w+') as outfile:
