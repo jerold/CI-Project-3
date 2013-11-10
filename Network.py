@@ -104,19 +104,27 @@ class Net:
                 print("Generation[" + str(Net.trainingStrategy.generation) + "]")
                 while Net.trainingStrategy.moreMembers():
                     self.layers[NetLayerType.Input].fetchNeuronWeightsForCurrentMember()
+                    correctCategories = []
                     for i in range(startIndex, endIndex):
                         # print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] P[" + str(i) + "]")
                         # Run each Pattern Through each member configuration, updating member weights with each pass
                         self.layers[NetLayerType.Input].setInputs(vectorizeMatrix(patterns[i]['p']))
                         self.layers[NetLayerType.Input].feedForward()
                         #print("Pattern Error: " + str(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs())))
-                        Net.trainingStrategy.updateMemberFitness(outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs()))
+                        patternError = outputError(self.patternSet.targetVector(patterns[i]['t']), self.layers[-1].getOutputs())
+                        if patternError == 0 and patterns[i]['t'] not in correctCategories:
+                            correctCategories.append(patterns[i]['t'])
+                        Net.trainingStrategy.updateMemberFitness(patternError/self.patternSet.counts[patterns[i]['t']])
                     if Net.trainingStrategy.runningChildren:
-                        Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness = Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness/(endIndex - startIndex)
-                        print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "]")
+                        Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].categoryCoverage = correctCategories
+                        Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].successFeedback(self.patternSet.combinedTargetVector(correctCategories))
+                        Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness = Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness/(endIndex - startIndex)/len(correctCategories)
+                        print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
                     else:
-                        Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness = Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness/(endIndex - startIndex)
-                        print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "]")                        
+                        Net.trainingStrategy.population[Net.trainingStrategy.currentMember].categoryCoverage = correctCategories
+                        Net.trainingStrategy.population[Net.trainingStrategy.currentMember].successFeedback(self.patternSet.combinedTargetVector(correctCategories))
+                        Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness = Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness/(endIndex - startIndex)/len(correctCategories)
+                        print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
                     Net.trainingStrategy.continueToNextMember()
                 Net.trainingStrategy.continueToNextGeneration()
         else:
@@ -265,9 +273,9 @@ if __name__=="__main__":
     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
         
     n = Net(p, hiddenArchitecture)
-    n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-    n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
-    # n.run(PatternType.Train, 0, 260)
-    # n.run(PatternType.Test, 0, 260)
+    # n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+    # n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+    n.run(PatternType.Train, 0, p.count)
+    n.run(PatternType.Test, 0, p.count)
     p.printConfusionMatrix()
     print("Done")

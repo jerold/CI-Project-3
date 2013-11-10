@@ -189,6 +189,16 @@ class PatternSet:
     def targetVector(self, key):
         return self.targetMatrix[key]
 
+    def combinedTargetVector(self, keys):
+        if len(keys) == 1:
+            return self.targetMatrix[keys[0]]
+        ctv = [t for t in self.targetMatrix[keys[0]]]
+        for key in keys[1:]:
+            tv = self.targetMatrix[key]
+            for c, cat in enumerate(ctv):
+                ctv[c] = tv[c] if tv[c] == 1 else ctv[c]
+        return ctv
+
     def updateConfusionMatrix(self, key, outputs):
         maxIndex = 0
         maxValue = 0

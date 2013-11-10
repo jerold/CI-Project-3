@@ -28,13 +28,22 @@ class Member():
         self.id = Member.memberIdInc
         Member.memberIdInc = Member.memberIdInc + 1
         self.genome = [[float(random.randrange(geneMin*10000, geneMax*10000))/10000 for _ in range(n)] for n in Member.genomeTemplate]
+        self.highPerformers = [0 for _ in Member.genomeTemplate]
         self.sigmas = []
         if includeStrategyParameters:
             self.sigmas = [[float(random.randrange(strategyMax*10000))/10000-(strategyMax/2) for _ in range(n)] for n in Member.genomeTemplate]
         self.fitness = 0.0
+        self.categoryCoverage = []
 
     def adjustFitness(self, value):
         self.fitness = self.fitness + value
+
+    def successFeedback(self, feedbackVector):
+        """The Feedback Vector represents the categories from which this member was able to choose correctly, therefore we will give preference to the cooresponding genes during combination"""
+        for i, fbv in enumerate(feedbackVector):
+            self.highPerformers[-1*len(feedbackVector) + i] = fbv
+        # print("FV:" + str(feedbackVector))
+        # print("HP:" + str(self.highPerformers))
 
     def getGenesAtPosition(self, neuronNumber):
         if len(self.genome) > len(Member.genomeTemplate):
@@ -80,7 +89,7 @@ class TrainingStrategy(object):
         return self.population[self.currentMember].adjustFitness(error)
 
     def fitnessThresholdMet(self):
-        if self.generation > 25:
+        if self.generation > 80:
             return True
         if len(self.alphas) < 1:
             return False
@@ -204,7 +213,7 @@ class EvolutionStrategy(TrainingStrategy):
         self.lam = 1.0
         self.strongerParentPreference = .5
         self.runningChildren = False
-        self.fitnessThreshold = .05
+        self.fitnessThreshold = .0005
         self.useSigmas = True
         self.sigmaMax = .001
         self.childSuccess = 0.0
@@ -237,7 +246,7 @@ class EvolutionStrategy(TrainingStrategy):
     def continueToNextGeneration(self):
         self.repopulate()
         #print("G:" + str(self.generation) + " F[" + ", ".join(str(int(m.fitness)) for m in self.population) + "] Alph:" + str(int(self.alphas[0].fitness)) + " Avg: " + str(int(self.averageFitness())) + " P:" + str(round(self.childSuccess, 3)))
-        print("G:" + str(self.generation) + " AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 3)) + " Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
+        print("G:" + str(self.generation) + " CC:[" + ",".join(str(m.categoryCoverage) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 3)) + " Alph:" + str(round(self.alphas[0].fitness, 3)) + " Avg: " + str(round(self.averageFitness(), 3)) + " P:" + str(round(self.childSuccess, 3)))
         
         self.generation = self.generation + 1
         # self.currentMember = 0
@@ -287,12 +296,14 @@ class EvolutionStrategy(TrainingStrategy):
             child = Member(0, 1, self.useSigmas, self.sigmaMax)
             # by gene we also mean sigmas as the crossover for these is the same
             for g, gene in enumerate(child.genome):
+                geneSuccessMod = self.strongerParentPreference*pair[0].highPerformers[g] - self.strongerParentPreference*pair[1].highPerformers[g]
+                # print("Mod:" + str(geneSuccessMod) + "[" + str(pair[0].highPerformers[g]) + "][" + str(pair[1].highPerformers[g]) + "]")
                 for w, singleWeight in enumerate(gene):
-                    if random.random() <= self.strongerParentPreference:
+                    if random.random() <= self.strongerParentPreference + geneSuccessMod:
                         child.genome[g][w] = pair[0].genome[g][w]
                     else:
                         child.genome[g][w] = pair[1].genome[g][w]
-                    if random.random() <= self.strongerParentPreference:
+                    if random.random() <= self.strongerParentPreference + geneSuccessMod:
                         child.sigmas[g][w] = pair[0].sigmas[g][w]
                     else:
                         child.sigmas[g][w] = pair[1].sigmas[g][w]
