@@ -61,6 +61,7 @@ class PatternSet:
     def __init__(self, fileName, percentTraining):
         with open(fileName) as jsonData:
             data = json.load(jsonData)
+        self.name = fileName
             
         # Assign Patterns and Randomize order
         self.patterns = data['patterns']
@@ -139,6 +140,19 @@ class PatternSet:
         #for key in keys:
             #print(str(key) + ", " + str(round(self.calcPrecision(key), 3)) + ", " + str(round(self.calcRecall(key), 3)))
         self.calcPrecisionAndRecall()
+
+    def saveConfusionMatrix(self):
+        keys = list(self.confusionMatrix.keys())
+        keys.sort()
+        with open('confusionMatrices.csv', 'a') as file:
+            file.write(self.name + '\n')
+            for key in keys:
+                for i, elem in enumerate(self.confusionMatrix[key]):
+                    file.write(str(elem))
+                    if i < len(self.confusionMatrix - 1):
+                        file.write(',')
+                file.write('\n')
+
 
     def calcPrecision(self, k):
         tp = self.confusionMatrix[k][k]

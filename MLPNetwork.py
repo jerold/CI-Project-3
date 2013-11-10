@@ -122,7 +122,7 @@ class Network:
                 #self.train(self.patternSet.targetVector(patterns[i]['p']), True)
                 self.train(vectorizeMatrix(patterns[i]['p']), self.patternSet.targetVector(patterns[i]['t']), True)
             else:
-                print patterns[i]['t']
+                #print patterns[i]['t']
                 self.train(vectorizeMatrix(patterns[i]['p']), self.patternSet.targetVector(patterns[i]['t']), False)
                 self.patternSet.updateConfusionMatrix(patterns[i]['t'], self.layers[NetLayerType.Output].getOutputs())
             # Each pattern produces an error which is added to the total error for the set
@@ -273,7 +273,7 @@ class Neuron:
 if __name__=="__main__":
     trainPercentage = 0.8
     patterns = []
-    p = PatternSet('data/adult/adult.json', trainPercentage)
+    p = PatternSet('data/ionosphere/ionosphere.json', trainPercentage)
     patterns.append(p)
     p = PatternSet('data/block/pageblocks.json', trainPercentage)
     patterns.append(p)
