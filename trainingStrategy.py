@@ -359,13 +359,6 @@ class GeneticAlgorithm(TrainingStrategy):
 
     def crossover(self, parents):
         """For the """
-        #children = []
-        #i = 0
-        #always get a list of two parents from the generator
-        # #while i < len(parents[0]):
-        #     parent1 = parents[0]
-        #     parent2 = parents[1]
-            #i += 2
         parents = list(parents)
         print parents
         for j, gene in enumerate(parents[0]):
@@ -374,7 +367,6 @@ class GeneticAlgorithm(TrainingStrategy):
                 child.append(parents[0][j])
             else:
                 child.append(parents[1][j])
-            #children.append(child)
         return child
 
     def mutate(self, children):
@@ -429,17 +421,3 @@ class DifferentialGA(TrainingStrategy):
     def repopulate(self):
         return 0
 
-
-# if __name__=="__main__":
-#     ts = TrainingStrategy.getTrainingStrategyOfType(TrainingStrategyType.GeneticAlgorithm)
-#     Member.genomeTemplate = [3, 3, 3, 3, 4, 4]
-#     memberCount = 10
-#     ts.initPopulation(10, range(-5, 5))
-#     for i in range(memberCount):
-#         print(ts.population[i].genome)
-#     print(ts.getCurrentMemberWeightsForNeuron(1))
-#     ts.setCurrentMemberWeightsForNeuron(1, [0.0, 1.1, 2.2])
-#     print(ts.getCurrentMemberWeightsForNeuron(1))
-#     ts.population[0].adjustFitness(4.50)
-#     ts.population[0].adjustFitness(5.50)
-#     print(ts.population[0].fitness)
