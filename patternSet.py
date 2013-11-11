@@ -149,7 +149,7 @@ class PatternSet:
             for key in keys:
                 for i, elem in enumerate(self.confusionMatrix[key]):
                     file.write(str(elem))
-                    if i < len(self.confusionMatrix - 1):
+                    if i < len(keys)-1:
                         file.write(',')
                 file.write('\n')
 
@@ -201,7 +201,10 @@ class PatternSet:
         print("Overall Correct: " + str(round(sum(diagonal)/matrixSum, 4)))
         
     def targetVector(self, key):
-        return self.targetMatrix[key]
+        try:
+            return self.targetMatrix[key]
+        except TypeError:
+            return self.targetMatrix[str(key)]
 
     def combinedTargetVector(self, keys):
         if len(keys) == 1:

@@ -257,31 +257,73 @@ class Neuron:
         return sigmoidal(inputSum)
 
 
-    
+#
+# #Main
+# if __name__=="__main__":
+#     trainPercentage = 0.8
+#     attributeNeuronMultiplier = 2
+#     populationSize = 40
+#
+#     #p = PatternSet('data/adult/adult.json', trainPercentage)        # Cases:32561 @ 1x16 # same as above
+#     p = PatternSet('data/car/car.json', trainPercentage)            # Cases:1382 @ 1x16 # same as above
+#     #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # Cases:10992 @ 1x16 # same as above
+#     #p = PatternSet('data/block/pageblocks.json', trainPercentage)
+#     #p = PatternSet('data/optdigits/optdigits.json', trainPercentage)        # 5620 @ 8x8
+#
+#     print("Weight Architecture:")
+#     # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
+#     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
+#     TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
+#     Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
+#     #Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
+#     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
+#
+#     n = Net(p, hiddenArchitecture)
+#     # n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+#     # n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+#     n.run(PatternType.Train, 0, p.count)
+#     n.run(PatternType.Test, 0, p.count)
+#     p.printConfusionMatrix()
+#     print("Done")
+
+
 #Main
 if __name__=="__main__":
     trainPercentage = 0.8
     attributeNeuronMultiplier = 2
     populationSize = 40
-    
-    #p = PatternSet('data/adult/adult.json', trainPercentage)        # Cases:32561 @ 1x16 # same as above
-    p = PatternSet('data/car/car.json', trainPercentage)            # Cases:1382 @ 1x16 # same as above
-    #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # Cases:10992 @ 1x16 # same as above
-    #p = PatternSet('data/block/pageblocks.json', trainPercentage)
-    #p = PatternSet('data/optdigits/optdigits.json', trainPercentage)        # 5620 @ 8x8
+    patterns = []
+    p = PatternSet('data/ionosphere/ionosphere.json', trainPercentage)
+    patterns.append(p)
+    # p = PatternSet('data/block/pageblocks.json', trainPercentage)
+    # patterns.append(p)
+    # p = PatternSet('data/heart/heart.json', trainPercentage)
+    # patterns.append(p)
+    # p = PatternSet('data/glass/glass.json', trainPercentage)
+    # patterns.append(p)
+    p = PatternSet('data/flare/flare.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/car/car.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/seeds/seeds.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/wine/wine.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/yeast/yeast.json', trainPercentage)
+    patterns.append(p)
+    p = PatternSet('data/zoo/zoo.json', trainPercentage)
+    patterns.append(p)
 
-    print("Weight Architecture:")
-    # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
     TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
-    Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
-    #Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
+    #Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
+    Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
-        
-    n = Net(p, hiddenArchitecture)
-    # n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-    # n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
-    n.run(PatternType.Train, 0, p.count)
-    n.run(PatternType.Test, 0, p.count)
+    for p in patterns:
+        n = Net(p, hiddenArchitecture)
+        # n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+        # n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+        n.run(PatternType.Train, 0, p.count)
+        n.run(PatternType.Test, 0, p.count)
     p.printConfusionMatrix()
     print("Done")

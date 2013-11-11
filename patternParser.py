@@ -61,6 +61,11 @@ ionosphere = {'inFiles':['data/ionosphere/ionosphere.data'],
          'width':34,
          'height':1}
 
+iris = {'inFiles':['data/iris/iris.data'],
+         'outFile':'data/iris/iris.json',
+         'width':4,
+         'height':1}
+
 def parseAdult(lines):
     patSet = []
     attributes = [[] for _ in range(14)]
@@ -356,6 +361,29 @@ def parseIonosphere(lines):
         print(len(set(attribute)))
     return patSet
 
+def parseIris(lines):
+    patSet = []
+    attributes = [[] for _ in range(4)]
+    targets = []
+    targetsAlt = {'Iris-setosa':1, 'Iris-versicolor':2, 'Iris-virginica':3}
+    for line in lines:
+        line = line.split('\n')[0]
+        line = line.split(',')
+        pattern = line[:len(line)-1]
+        for i in range(len(pattern)):
+            pattern[i] = float(pattern[i])
+            attributes[i].append(pattern[i])
+        patternTarget = targetsAlt[line[-1]]
+        patSet.append({'p':pattern, 't':patternTarget})
+        targets.append(patternTarget)
+        #print('p:' + str(pattern) + '  t:' + str(patternTarget))
+    print("Targets")
+    print(set(targets))
+    print("Attributes")
+    for attribute in attributes:
+        print(len(set(attribute)))
+    return patSet
+
 def mygrouper(n, iterable):
     "http://stackoverflow.com/questions/1624883/alternative-way-to-split-a-list-into-groups-of-n"
     args = [iter(iterable)] * n
@@ -533,7 +561,8 @@ def printPattern(pattern):
 
 
 if __name__=="__main__":
-    #parseSets = [pageBlock, car, flare, adult, wine, yeast,zoo,heart,seeds,glass]
+    #parseSets = [pageBlock, car, flare, adult, wine, yeast,zoo,heart,seeds,
+    # ionosphere, iris, glass]
     #parseSet = pageBlock
     #parseSets = [car]
     #parseSets = [flare]
@@ -544,7 +573,8 @@ if __name__=="__main__":
     #parseSets = [heart]
     #parseSets = [seeds]
     #parseSets = [glass]
-    parseSets = [ionosphere]
+    #parseSets = [ionosphere]
+    parseSets = [iris]
 
     for parseSet in parseSets:
         lines = []
@@ -577,6 +607,8 @@ if __name__=="__main__":
             patternSet = parseGlass(lines)
         elif parseSet['outFile'] == ionosphere['outFile']:
             patternSet = parseIonosphere(lines)
+        elif parseSet['outFile'] == iris['outFile']:
+            patternSet = parseIris(lines)
             
         # print("pats: " + str(len(patternSet)))
         with open(parseSet['outFile'], 'w+') as outfile:

@@ -485,15 +485,40 @@ class DifferentialGA(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.DifferentialGA
+        self.mask = self.createMask()
+        self.x = 'alpha' #way of selecting target: alpha, random
+        self.y = 2        #number of difference vectors
+        self.z = 'binomial' #crossover operator: mask, binomial. exponential
+        self.beta = 0
+        self.probability = 0.1
 
-    def select(self):
-        return 0
+    def selectTwo(self):
+        self.population.sort(lambda x: x.fitness, False)
+        if not self.alphas:
+            self.alphas.append(self.population[0])
+        else:
+            self.alphas[0] = self.population[0]
+        bestMembers = self.population[:len(self.population/2)]
+        otherMembers = self.population[len(self.population/2):]
+        for i in range(self.population):
+            yield [bestMembers[i], otherMembers[i]]
 
     def crossover(self):
-        return 0
+        target = self.alphas[0]
+        trial = self.mutateDiff()
+        numDimensions = int(self.probability * len(target))
+        mask = []
+        for i in range(numDimensions):
+            mask.append(random.sample(trial))
+        child = []
+        for i, gene in enumerate(target):
+            if gene not in mask:
+                child.append(gene)
+            else:
+                child.append(trial[i])
 
-    def mutate(self):
-        return 0
+    def mutateDiff(self):
+        randoms = self.selectTwo()
 
     def evaluateFitness(self):
         return 0
@@ -501,3 +526,5 @@ class DifferentialGA(TrainingStrategy):
     def repopulate(self):
         return 0
 
+    def mutate(self):
+        return

@@ -46,7 +46,7 @@ def sigmoidal(parameter):
 # combined sum of the difference between two vectors
 def outputError(p, q):
     errSum = 0.0
-    for i in range(len(p)):
+    for i in range(len(q)):
         errSum = errSum + math.fabs(p[i] - q[i])
     return errSum
 
@@ -99,9 +99,10 @@ class Network:
     def __init__(self, patternSet):
         self.iterations = 0
         inputLayer = Layer(NetLayerType.Input, None, patternSet.inputMagnitude())
-        hiddenLayer = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*2)
-        outputLayer = Layer(NetLayerType.Output, hiddenLayer, patternSet.outputMagnitude())
-        self.layers = [inputLayer, hiddenLayer, outputLayer]
+        hiddenLayer1 = Layer(NetLayerType.Hidden, inputLayer, patternSet.inputMagnitude()*2)
+        hiddenLayer2 = Layer(NetLayerType.Hidden, hiddenLayer1, patternSet.inputMagnitude()*2)
+        outputLayer = Layer(NetLayerType.Output, hiddenLayer2, patternSet.outputMagnitude())
+        self.layers = [inputLayer, hiddenLayer1, outputLayer]
         self.output = []
         self.patternSet = patternSet
         self.absError = 100
@@ -273,16 +274,16 @@ class Neuron:
 if __name__=="__main__":
     trainPercentage = 0.8
     patterns = []
-    p = PatternSet('data/ionosphere/ionosphere.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/block/pageblocks.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/heart/heart.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/glass/glass.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/flare/flare.json', trainPercentage)
-    patterns.append(p)
+    # p = PatternSet('data/ionosphere/ionosphere.json', trainPercentage)
+    # patterns.append(p)
+    # p = PatternSet('data/block/pageblocks.json', trainPercentage)
+    # patterns.append(p)
+    # p = PatternSet('data/heart/heart.json', trainPercentage)
+    # patterns.append(p)
+    # p = PatternSet('data/glass/glass.json', trainPercentage)
+    # patterns.append(p)
+    # p = PatternSet('data/flare/flare.json', trainPercentage)
+    # patterns.append(p)
     p = PatternSet('data/car/car.json', trainPercentage)
     patterns.append(p)
     p = PatternSet('data/seeds/seeds.json', trainPercentage)
@@ -291,9 +292,10 @@ if __name__=="__main__":
     patterns.append(p)
     p = PatternSet('data/yeast/yeast.json', trainPercentage)
     patterns.append(p)
-    p = PatternSet('data/zoo/zoo.json', trainPercentage)
+    p = PatternSet('data/iris/iris.json', trainPercentage)
     patterns.append(p)
-
+    p = PatternSet('data/iris/iris.json', trainPercentage)
+    patterns.append(p)
 
     for p in patterns:
         n = Network(p)
@@ -301,5 +303,5 @@ if __name__=="__main__":
         saveWeights(n)
         n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
         p.saveConfusionMatrix()
-    p.printConfusionMatrix()
+        p.printConfusionMatrix()
     print("Done")
