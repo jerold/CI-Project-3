@@ -41,6 +41,8 @@ def memberVarience(population, alpha):
 def averageFitness(population):
     return sum(x.fitness for x in population)/len(population)
 
+
+
 class Member():
     memberIdInc = 0
     genomeTemplate = [] # example [3, 3, 3, 3, 4, 4] Input layer has 3 nodes, Hidden has 4, output has 2
@@ -140,10 +142,7 @@ class TrainingStrategy(object):
         return 0.15
 
     #---- Net Interface Methods ---------------------------------------------
-
-    def updateMemberFitness(self, error):
-        return self.population[self.currentMember].adjustFitness(error)
-
+    
     def fitnessThresholdMet(self):
         if self.generation > self.maxGenerations:
             return True
@@ -151,7 +150,6 @@ class TrainingStrategy(object):
             return False
         if self.alphas[0].fitness <= self.fitnessThreshold:
             return True
-        # self.resetPopulationFitness()
         return False
 
     def moreMembers(self):
@@ -233,11 +231,6 @@ class TrainingStrategy(object):
     #     self.currentMember = 0
     #     self.currentChildMember = 0
     #     self.childPopulation = []
-
-    # def resetPopulationFitness(self):
-    #     """Between each generation fitness is reset"""
-    #     for member in self.population:
-    #         member.fitness = 0.0
 
     # def getCurrentMemberWeightsForNeuron(self, neuronNumber):
     #     """Get method Neurons use to fetch their coorisponding weights from the current member's genome"""
@@ -346,7 +339,8 @@ class EvolutionStrategy(TrainingStrategy):
             if member.id > self.highestCurrentMemberId:
                 self.childSuccess = self.childSuccess + 1
         self.childSuccess = self.childSuccess/self.maxPopulationSize
-        print("G:" + str(self.generation) + " CC:[" + ", ".join(str(m.categoryCoverage) + ":" + str(round(m.fitness, 4)) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 4)) + " Alph:" + str(round(self.alphas[0].fitness, 4)) + " Avg: " + str(round(self.averageFitness(), 4)) + " P:" + str(round(self.childSuccess, 4)))
+        # print("G:" + str(self.generation) + " CC:[" + ", ".join(str(m.categoryCoverage) + ":" + str(round(m.fitness, 4)) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 4)) + " Alph:" + str(round(self.alphas[0].fitness, 4)) + " Avg: " + str(round(self.averageFitness(), 4)) + " P:" + str(round(self.childSuccess, 4)))
+        print("G:" + str(self.generation) + " CC:[" + ", ".join(str(m.categoryCoverage) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 4)) + " Alph:" + str(round(self.alphas[0].fitness, 4)) + " Avg: " + str(round(self.averageFitness(), 4)) + " P:" + str(round(self.childSuccess, 4)))
 
 
 

@@ -57,6 +57,9 @@ def printPatterns(pattern):
 # A Pattern set contains sets of 3 types of patterns
 # and can be used to retrieve only those patterns of a certain type
 class PatternSet:
+    confusionMatrix = {}
+    correctness = []
+
     # Reads patterns in from a file, and puts them in their coorisponding set
     def __init__(self, fileName):
         with open(fileName) as jsonData:
@@ -128,18 +131,54 @@ class PatternSet:
                 self.targetMatrix[str(key)] = [0] * len(keys)
                 self.targetMatrix[str(key)][index] = 1
                 index = index + 1
+
+        #init Class Level Confusion Matrix for Multi Run Stats
+        if len(PatternSet.confusionMatrix) == 0:
+            for key in keys:
+                try:
+                    PatternSet.confusionMatrix[key] = [0.0] * len(keys)
+                except TypeError:
+                    PatternSet.confusionMatrix[str(key)] = [0.0] * len(keys)
+            PatternSet.correctness = []
+
         self.outputMag = len(keys)
 
-    def printConfusionMatrix(self):
-        keys = list(self.confusionMatrix.keys())
+    def initCombinedConfusionMatrix(self):
+        PatternSet.confusionMatrix = {}
+        PatternSet.correctness = []
+        keys = self.targets
         keys.sort()
-        print("\nConfusion Matrix")
         for key in keys:
-            printPatterns(self.confusionMatrix[key])
-        print("\nKey, Precision, Recall")
-        #for key in keys:
-            #print(str(key) + ", " + str(round(self.calcPrecision(key), 3)) + ", " + str(round(self.calcRecall(key), 3)))
-        self.calcPrecisionAndRecall()
+            try:
+                PatternSet.confusionMatrix[key] = [0.0] * len(keys)
+            except TypeError:
+                PatternSet.confusionMatrix[str(key)] = [0.0] * len(keys)
+        PatternSet.correctness = []
+
+    def printCombinedCorrectness(self):
+        if len(PatternSet.correctness) > 0:
+            average = sum(PatternSet.correctness)/len(PatternSet.correctness)
+            squaredDifferences = 0.0
+            for val in PatternSet.correctness:
+                squaredDifferences = squaredDifferences + (val - average)*(val - average)
+            meanSquaredDifference = squaredDifferences/len(PatternSet.correctness)
+            print("Standard Deviation of Correctness: " + str(round(math.sqrt(meanSquaredDifference), 4)))
+
+    def printStats(self):
+        print("\nConfusion Matrix")
+        self.printConfusionMatrix(self.confusionMatrix)
+        self.calcPrecisionAndRecall(self.confusionMatrix)
+        if len(PatternSet.correctness) > 1:
+            print("\nMulti-Run Combined Confusion Matrix")
+            self.printConfusionMatrix(PatternSet.confusionMatrix)
+            self.calcPrecisionAndRecall(PatternSet.confusionMatrix)
+            self.printCombinedCorrectness()
+
+    def printConfusionMatrix(self, confMatrix):
+        keys = list(confMatrix.keys())
+        keys.sort()
+        for key in keys:
+            printPatterns(confMatrix[key])
 
     def saveConfusionMatrix(self):
         keys = list(self.confusionMatrix.keys())
@@ -152,7 +191,6 @@ class PatternSet:
                     if i < len(keys)-1:
                         file.write(',')
                 file.write('\n')
-
 
     def calcPrecision(self, k):
         tp = self.confusionMatrix[k][k]
@@ -173,8 +211,8 @@ class PatternSet:
             return tnSum
         return tp/tnSum
 
-    def calcPrecisionAndRecall(self):
-        keys = list(self.confusionMatrix.keys())
+    def calcPrecisionAndRecall(self, confMatrix):
+        keys = list(confMatrix.keys())
         matrixSum = 0.0
         keys.sort()
         i = 0
@@ -182,7 +220,7 @@ class PatternSet:
         recall = []
         diagonal = []
         for key in keys:
-            row = self.confusionMatrix[key]
+            row = confMatrix[key]
             rowSum = 0
             for j, val in enumerate(row):
                 if i==j:
@@ -195,11 +233,13 @@ class PatternSet:
             matrixSum = matrixSum + rowSum
             precision.append(rowSum)
             i += 1
+        print("\nKey, Precision, Recall")
         for i, elem in enumerate(diagonal):
             if abs(precision[i]) > 0.0 and abs(recall[i]) > 0.0:
                 print(str(keys[i]) + ", " + str(round(elem / precision[i], 4)) + ", " + str(round(elem/recall[i], 4)))
+        PatternSet.correctness.append(sum(diagonal)/matrixSum)
         print("Overall Correct: " + str(round(sum(diagonal)/matrixSum, 4)))
-        
+
     def targetVector(self, key):
         try:
             return self.targetMatrix[key]
@@ -224,6 +264,7 @@ class PatternSet:
                 maxIndex = i
                 maxValue = outputs[i]
         self.confusionMatrix[key][maxIndex] = self.confusionMatrix[key][maxIndex] + 1
+        PatternSet.confusionMatrix[key][maxIndex] = PatternSet.confusionMatrix[key][maxIndex] + 1
 
     def inputMagnitude(self):
         return self.inputMagX * self.inputMagY

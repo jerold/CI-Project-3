@@ -1,0 +1,123 @@
+    maxGenerations = 20
+    populationSize = 40
+    runsPerDataSet = 10
+    hiddenArchitecture = [16]
+Multi-Run Combined Confusion Matrix
+53.0, 14.0, 79.0
+22.0, 81.0, 30.0
+48.0, 3.0, 90.0
+
+Key, Precision, Recall
+1, 0.363, 0.4309
+2, 0.609, 0.8265
+3, 0.6383, 0.4523
+Overall Correct: 0.5333
+Standard Deviation of Correctness: 0.0886
+
+
+    trainPercentage = 0.8
+    maxGenerations = 20
+    populationSize = 40
+    runsPerDataSet = 10
+    hiddenArchitecture = [8]
+Multi-Run Combined Confusion Matrix
+40.0, 41.0, 63.0
+28.0, 111.0, 9.0
+35.0, 19.0, 74.0
+
+Key, Precision, Recall
+1, 0.2778, 0.3883
+2, 0.75, 0.6491
+3, 0.5781, 0.5068
+Overall Correct: 0.5357
+Standard Deviation of Correctness: 0.0891
+
+
+    trainPercentage = 0.8
+    maxGenerations = 20
+    populationSize = 40
+    runsPerDataSet = 10
+    hiddenArchitecture = [24]
+Multi-Run Combined Confusion Matrix
+69.0, 12.0, 58.0
+72.0, 47.0, 29.0
+81.0, 3.0, 49.0
+
+Key, Precision, Recall
+1, 0.4964, 0.3108
+2, 0.3176, 0.7581
+3, 0.3684, 0.3603
+Overall Correct: 0.3929
+Standard Deviation of Correctness: 0.0755
+
+
+    trainPercentage = 0.8
+    maxGenerations = 20
+    populationSize = 40
+    runsPerDataSet = 10
+    hiddenArchitecture = [20]
+Multi-Run Combined Confusion Matrix
+42.0, 8.0, 102.0
+43.0, 60.0, 13.0
+51.0, 1.0, 100.0
+
+Key, Precision, Recall
+1, 0.2763, 0.3088
+2, 0.5172, 0.8696
+3, 0.6579, 0.4651
+Overall Correct: 0.481
+Standard Deviation of Correctness: 0.0695
+
+
+    trainPercentage = 0.8
+    maxGenerations = 20
+    populationSize = 40
+    runsPerDataSet = 10
+    hiddenArchitecture = [7]
+Multi-Run Combined Confusion Matrix
+66.0, 42.0, 16.0
+91.0, 44.0, 15.0
+80.0, 40.0, 26.0
+
+Key, Precision, Recall
+1, 0.5323, 0.2785
+2, 0.2933, 0.3492
+3, 0.1781, 0.4561
+Overall Correct: 0.3238
+Standard Deviation of Correctness: 0.0457
+
+
+    trainPercentage = 0.8
+    maxGenerations = 20
+    populationSize = 40
+    runsPerDataSet = 10
+    hiddenArchitecture = [12]
+Multi-Run Combined Confusion Matrix
+38.0, 10.0, 100.0
+54.0, 75.0, 16.0
+21.0, 1.0, 105.0
+
+Key, Precision, Recall
+1, 0.2568, 0.3363
+2, 0.5172, 0.8721
+3, 0.8268, 0.4751
+Overall Correct: 0.519
+Standard Deviation of Correctness: 0.0831
+
+
+    trainPercentage = 0.8
+    maxGenerations = 20
+    populationSize = 40
+    runsPerDataSet = 10
+    hiddenArchitecture = [14]
+Multi-Run Combined Confusion Matrix
+29.0, 20.0, 91.0
+20.0, 98.0, 29.0
+30.0, 8.0, 95.0
+
+Key, Precision, Recall
+1, 0.2071, 0.3671
+2, 0.6667, 0.7778
+3, 0.7143, 0.4419
+Overall Correct: 0.5286
+Standard Deviation of Correctness: 0.0709
