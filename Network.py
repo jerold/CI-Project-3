@@ -135,7 +135,7 @@ class Net:
                         fitness = fitness/(endIndex - startIndex)
                         fitness = fitness/(len(correctCategories))
                         Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness = fitness
-                        print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
+                        # print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
                     else:
                         Net.trainingStrategy.population[Net.trainingStrategy.currentMember].categoryCoverage = correctCategories
                         Net.trainingStrategy.population[Net.trainingStrategy.currentMember].successFeedback(self.patternSet.combinedTargetVector(correctCategories))
@@ -143,7 +143,7 @@ class Net:
                         fitness = fitness/(endIndex - startIndex)
                         fitness = fitness/(len(correctCategories))
                         Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness = fitness
-                        print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
+                        # print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
                     Net.trainingStrategy.continueToNextMember()
                 Net.trainingStrategy.continueToNextGeneration()
         else:
@@ -281,13 +281,6 @@ class Neuron:
 
 #Main
 if __name__=="__main__":
-    trainPercentage = 0.8
-    attributeNeuronMultiplier = 2
-    maxGenerations = 20
-    populationSize = 40
-    runsPerDataSet = 10
-
-
     # Batch:
     # allDataTypes = ['data/ionosphere/ionosphere.json', 
     #                 'data/block/pageblocks.json',
@@ -301,17 +294,16 @@ if __name__=="__main__":
     #                 'data/iris/iris.json']
 
     # Single:
-    allDataTypes = ['data/ionosphere/ionosphere.json']
+    # allDataTypes = ['data/ionosphere/ionosphere.json']
     # allDataTypes = ['data/block/pageblocks.json']
     # allDataTypes = ['data/heart/heart.json']
     # allDataTypes = ['data/glass/glass.json']
     # allDataTypes = ['data/car/car.json']
-    # allDataTypes = ['data/seeds/seeds.json']
+    allDataTypes = ['data/seeds/seeds.json']
     # allDataTypes = ['data/wine/wine.json']
     # allDataTypes = ['data/yeast/yeast.json']
     # allDataTypes = ['data/zoo/zoo.json']
     # allDataTypes = ['data/iris/iris.json']
-
 
     # Batch:
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm, TS.TrainingStrategyType.DifferentialGA]
@@ -321,22 +313,29 @@ if __name__=="__main__":
     # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
     # strategies = [TS.TrainingStrategyType.DifferentialGA]
 
-
-    hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
-    # Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
+    trainPercentage = 0.8
+    maxGenerations = 20
+    populationSize = 10
+    runsPerDataSet = 10
+    hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
     for dataSet in allDataTypes:
         for strat in strategies:
-            for _ in range(runsPerDataSet):
+            for run in range(runsPerDataSet):
+                print("\nData Set: (" + str(dataSet) + ") Run: " + str(run))
                 p = PatternSet(dataSet)
-                print("Data Set: " + str(p.name))
+                if run == 0:
+                    p.initCombinedConfusionMatrix()
+
                 TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
                 Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(strat)
                 Net.trainingStrategy.maxGenerations = maxGenerations
                 Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
                 n = Net(p, hiddenArchitecture)
+
                 n.run(PatternType.Train, 0, int(p.count*trainPercentage))
                 n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
                 # n.run(PatternType.Train, 0, p.count)
                 # n.run(PatternType.Test, 0, p.count)
-                p.printConfusionMatrix()
+
+                p.printStats()
     print("Done")
