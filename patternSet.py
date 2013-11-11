@@ -58,7 +58,7 @@ def printPatterns(pattern):
 # and can be used to retrieve only those patterns of a certain type
 class PatternSet:
     # Reads patterns in from a file, and puts them in their coorisponding set
-    def __init__(self, fileName, percentTraining):
+    def __init__(self, fileName):
         with open(fileName) as jsonData:
             data = json.load(jsonData)
         self.name = fileName
