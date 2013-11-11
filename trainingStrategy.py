@@ -472,7 +472,6 @@ class EvolutionStrategy(TrainingStrategy):
     #     print("P:" + str(round(self.childSuccess, 3)))
 
 
-
 class GeneticAlgorithm(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -553,42 +552,61 @@ class DifferentialGA(TrainingStrategy):
         self.x = 'alpha' #way of selecting target: alpha, random
         self.y = 2        #number of difference vectors
         self.z = 'binomial' #crossover operator: mask, binomial. exponential
-        self.beta = 0
-        self.probability = 0.1
+        self.beta = 0.2
+        self.probability = 0.3
+        self.mask
+        self.useSigmas = False
 
     def selectTwo(self):
-        self.population.sort(lambda x: x.fitness, False)
-        if not self.alphas:
-            self.alphas.append(self.population[0])
-        else:
-            self.alphas[0] = self.population[0]
-        bestMembers = self.population[:len(self.population/2)]
-        otherMembers = self.population[len(self.population/2):]
-        for i in range(self.population):
-            yield [bestMembers[i], otherMembers[i]]
+        return random.sample(self.population, 2)
+
+    def createMask(self, target):
+        mask = []
+        for gene in target:
+            for elem in gene:
+                prob = random.uniform(0, 1)
+                if prob < self.probability:
+                    mask.append(elem)
 
     def crossover(self):
+        self.mask = self.createMask(self.alphas[0])
         target = self.alphas[0]
-        trial = self.mutateDiff()
-        numDimensions = int(self.probability * len(target))
-        mask = []
-        for i in range(numDimensions):
-            mask.append(random.sample(trial))
-        child = []
-        for i, gene in enumerate(target):
-            if gene not in mask:
-                child.append(gene)
-            else:
-                child.append(trial[i])
+        children = []
+        for member in self.population:
+            trial = self.mutateDiff()
+            child = Member(0, 1, self.useSigmas, self.sigmaMax)
+            for i, gene in enumerate(member):
+                for j, elem in enumerate(gene):
+                    if elem not in self.mask:
+                        child.genome[i][j] = elem
+                    else:
+                        child.genome[i][j] = trial[i][j]
+            self.childPopulation.append(child)
 
     def mutateDiff(self):
+        target = self.alphas[0]
         randoms = self.selectTwo()
+        random1 = randoms[0]
+        random2 = randoms[-1]
+        trial = [[]]
+        for i, gene in enumerate(random1):
+            for j,elem in gene:
+                trial[i][j] = target[i][j] + (self.beta * (elem - random2[i][j]))
+        return trial
 
-    def evaluateFitness(self):
+    def evaluateFitness(self, child):
         return 0
 
     def repopulate(self):
-        return 0
+        self.repopulateDGA()
+
+    def repopulateDGA(self):
+        newPopulation = []
+        for i, member in enumerate(self.population):
+            if member.fitness > self.childPopulation[i]:
+                newPopulation.append(member)
+            else:
+                newPopulation.append(self.childPopulation[i])
 
     def mutate(self):
-        return
+        return 0
