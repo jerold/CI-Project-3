@@ -336,6 +336,6 @@ if __name__=="__main__":
                 n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
                 # n.run(PatternType.Train, 0, p.count)
                 # n.run(PatternType.Test, 0, p.count)
-
+                p.saveConfusionMatrix()
                 p.printStats()
     print("Done")

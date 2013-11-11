@@ -70,7 +70,7 @@ class Member():
 
     def getGenesAtPosition(self, neuronNumber):
         if len(self.genome) > len(Member.genomeTemplate):
-            return {'genes':self.genome[neuronNumber], 'strategy parameters':self.genome[len(Member.genomeTemplate) + neuronNumber]}
+            return {'genes':self.genome[neuronNumber], 'strategy parameters':self.genome[-1]}
         return {'genes':self.genome[neuronNumber]}
 
     # Used by the MLP during backprop
@@ -286,7 +286,6 @@ class EvolutionStrategy(TrainingStrategy):
 
     def crossover(self, parents):
         #Uniform Crossover, produces 1 child per pair of parents
-        children = []
         #We use highestCurrentMemberId to check which of the members of the next generation are children of this generation
         self.highestCurrentMemberId = Member.memberIdInc
         #print(len(parents))
@@ -307,8 +306,8 @@ class EvolutionStrategy(TrainingStrategy):
                         child.sigmas[g][w] = pair[0].sigmas[g][w]
                     else:
                         child.sigmas[g][w] = pair[1].sigmas[g][w]
-            children.append(child)
-        return children
+            self.childPopulation.append(child)
+        return self.childPopulation
 
     def mutate(self):
         # Use 1/5 rule for sigma mutation
@@ -349,17 +348,20 @@ class GeneticAlgorithm(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.GeneticAlgorithm
-        self.lam = .5
+        self.childSuccess = 0.0
+        self.highestCurrentMemberId = 0
+        self.maxGenerations = 15
+        self.childPopulation = []
 
     def select(self):
-        self.population.sort(lambda x: x.fitness, False)
+        self.population.sort(key=lambda x: x.fitness, reverse=False)
         if not self.alphas:
             self.alphas.append(self.population[0])
         else:
             self.alphas[0] = self.population[0]
-        bestMembers = self.population[:len(self.population/2)]
-        otherMembers = self.population[len(self.population/2):]
-        for i in range(self.population):
+        bestMembers = self.population[:len(self.population)/2]
+        otherMembers = self.population[len(self.population)/2:]
+        for i in range(len(bestMembers)):
             yield [bestMembers[i], otherMembers[i]]
 
     def crossover(self, parents):
@@ -367,54 +369,70 @@ class GeneticAlgorithm(TrainingStrategy):
         parents = list(parents)
         print parents
         for j, gene in enumerate(parents[0]):
-            child = []
+            child = Member(0, 1, self.useSigmas, self.sigmaMax)
             if j % 2 == 0:
-                child.append(parents[0][j])
+                child.genome.append(parents[0][j])
             else:
-                child.append(parents[1][j])
-        return child
+                child.genome.append(parents[1][j])
+            self.childPopulation.append(child)
+        return self.childPopulation
 
-    def mutate(self, children):
-        for child in children:
-            for gene in child:
-                for elem in gene:
+    def mutate(self):
+        for member in self.population:
+            for i, gene in enumerate(member.genome):
+                for j, elem in enumerate(gene):
                     if self.mutation():
                         if random.choice([True, False]):
-                            elem += self.epsilon()
+                            member.genome[i][j] += self.epsilon()
                         else:
-                            elem -= self.epsilon()
-        return child
+                            member.genome[i][j] -= self.epsilon()
+
 
     def mutation(self):
-        member = self.population[0]
-        numberOfElements = len(member) * len(member[0])
+        # member = self.population[0]
+        numberOfElements = len(Member.genomeTemplate)
         probability = 1 / float(numberOfElements)
-        elem = random.random(0,numberOfElements) * probability
+        elem = random.uniform(0,numberOfElements) * probability
         choice = random.uniform(0, 1)
-        diff = math.abs(elem - choice)
+        diff = math.fabs(elem - choice)
         if diff > probability:
             return False
         return True
 
     def evaluateFitness(self, child):
-        fitness = 0
-        for pattern in patternSet.patterns:
-            Network.Layer.setInputs(Network.Net[0], pattern['p'])
-            Network.Layer.feedforward(Network.Net[0])
-            fitness += Network.Net.calculateConvError(Network.Net, pattern['t'])
-        child.fitness = fitness
+        # fitness = 0
+        # for pattern in patternSet.patterns:
+        #     Network.Layer.setInputs(Network.Net[0], pattern['p'])
+        #     Network.Layer.feedforward(Network.Net[0])
+        #     fitness += Network.Net.calculateConvError(Network.Net, pattern['t'])
+        # child.fitness = fitness
+        return 0
 
-    def repopulate(self, contendors):
-        bestFit = 0
-        nextFit = 0
-        for member in contendors:
-            if member.fitness > bestFit:
-                bestFitMember = member
-            elif member.fitness > nextFit:
-                nextFitMember = member
-        self.population.append(bestFitMember)
-        self.population.append(nextFitMember)
+    # def repopulate(self, contendors):
+    #     bestFit = 0
+    #     nextFit = 0
+    #     for member in contendors:
+    #         if member.fitness > bestFit:
+    #             bestFitMember = member
+    #         elif member.fitness > nextFit:
+    #             nextFitMember = member
+    #     self.population.append(bestFitMember)
+    #     self.population.append(nextFitMember)
+    def repopulate(self):
+        self.repopulateGA()
 
+    def repopulateGA(self):
+        oldAndNew = self.population + self.childPopulation
+        oldAndNew.sort(key=lambda x: x.fitness, reverse=False)
+        self.population = oldAndNew[:self.maxPopulationSize]
+        if not self.population:
+            self.alphas.append(self.population[0])
+        recordItems(", ".join(str(int(m.fitness)) for m in self.population) + ", " + str(self.childSuccess))
+        self.childSuccess = 0.0
+        for member in self.population:
+            if member.id > self.highestCurrentMemberId:
+                self.childSuccess = self.childSuccess + 1
+        self.childSuccess = self.childSuccess/self.maxPopulationSize
 
 
 class DifferentialGA(TrainingStrategy):
@@ -441,7 +459,7 @@ class DifferentialGA(TrainingStrategy):
 
     def createMask(self, target):
         mask = []
-        for gene in target:
+        for gene in target.genome:
             for elem in gene:
                 prob = random.uniform(0, 1)
                 if prob < self.probability:
@@ -452,28 +470,30 @@ class DifferentialGA(TrainingStrategy):
         self.population.sort(key=lambda x: x.fitness, reverse=False)
         if not self.alphas:
             self.alphas.append(self.population[0])
-        self.mask = self.createMask(self.alphas[0])
+        self.createMask(self.alphas[0])
         self.highestCurrentMemberId = Member.memberIdInc
+        self.childPopulation = []
         for member in self.population:
             trial = self.mutateDiff()
             child = Member(0, 1, self.useSigmas, self.sigmaMax)
-            for i, gene in enumerate(member):
+            for i, gene in enumerate(member.genome):
                 for j, elem in enumerate(gene):
                     if elem not in self.mask:
                         child.genome[i][j] = elem
                     else:
-                        child.genome[i][j] = trial[i][j]
+                        child.genome[i][j] = trial.genome[i][j]
             self.childPopulation.append(child)
+        return self.childPopulation
 
     def mutateDiff(self):
         target = self.alphas[0]
         randoms = self.selectTwo()
         random1 = randoms[0]
         random2 = randoms[-1]
-        trial = [[]]
-        for i, gene in enumerate(random1):
-            for j,elem in gene:
-                trial[i][j] = target[i][j] + (self.beta * (elem - random2[i][j]))
+        trial = Member(0,1,self.useSigmas, self.sigmaMax)
+        for i, gene in enumerate(random1.genome):
+            for j, elem in enumerate(gene):
+                trial.genome[i][j] = target.genome[i][j] + (self.beta * (elem - random2.genome[i][j]))
         return trial
 
     def evaluateFitness(self):
@@ -489,13 +509,14 @@ class DifferentialGA(TrainingStrategy):
                 newPopulation.append(member)
             else:
                 newPopulation.append(self.childPopulation[i])
-        self.population = newPopulation.sort(key=lambda x: x.fitness, reverse=False)
+        newPopulation.sort(key=lambda x: x.fitness, reverse=False)
+        self.population = newPopulation
         self.childSuccess = 0.0
         for member in self.population:
             if member.id > self.highestCurrentMemberId:
                 self.childSuccess = self.childSuccess + 1
-        self.childSuccess = self.childSuccess/self.populationSize
-        print("G:" + str(self.generation) + " CC:[" + ", ".join(str(m.categoryCoverage) + ":" + str(round(m.fitness, 4)) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 4)) + " Alph:" + str(round(self.alphas[0].fitness, 4)) + " Avg: " + str(round(self.averageFitness(), 4)) + " P:" + str(round(self.childSuccess, 4)))
+        self.childSuccess = self.childSuccess/self.maxPopulationSize
+        #print("G:" + str(self.generation) + " CC:[" + ", ".join(str(m.categoryCoverage) + ":" + str(round(m.fitness, 4)) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 4)) + " Alph:" + str(round(self.alphas[0].fitness, 4)) + " Avg: " + str(round(self.averageFitness(), 4)) + " P:" + str(round(self.childSuccess, 4)))
 
     def mutate(self):
         return 0
