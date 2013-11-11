@@ -283,10 +283,12 @@ class Neuron:
 if __name__=="__main__":
     trainPercentage = 0.8
     attributeNeuronMultiplier = 2
+    maxGenerations = 20
     populationSize = 40
     runsPerDataSet = 10
 
-    # Batch
+
+    # Batch:
     # allDataTypes = ['data/ionosphere/ionosphere.json', 
     #                 'data/block/pageblocks.json',
     #                 'data/heart/heart.json',
@@ -310,20 +312,31 @@ if __name__=="__main__":
     # allDataTypes = ['data/zoo/zoo.json']
     # allDataTypes = ['data/iris/iris.json']
 
+
+    # Batch:
+    # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm, TS.TrainingStrategyType.DifferentialGA]
+
+    # Single:
+    strategies = [TS.TrainingStrategyType.EvolutionStrategy]
+    # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
+    # strategies = [TS.TrainingStrategyType.DifferentialGA]
+
+
     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
     # Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
     for dataSet in allDataTypes:
-        for _ in range(runsPerDataSet):
-            p = PatternSet(dataSet)
-            print("Data Set: " + str(p.name))
-            TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
-            #Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
-            Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.DifferentialGA)
-            Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
-            n = Net(p, hiddenArchitecture)
-            n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-            n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
-            # n.run(PatternType.Train, 0, p.count)
-            # n.run(PatternType.Test, 0, p.count)
-            p.printConfusionMatrix()
+        for strat in strategies:
+            for _ in range(runsPerDataSet):
+                p = PatternSet(dataSet)
+                print("Data Set: " + str(p.name))
+                TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
+                Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(strat)
+                Net.trainingStrategy.maxGenerations = maxGenerations
+                Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
+                n = Net(p, hiddenArchitecture)
+                n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+                n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+                # n.run(PatternType.Train, 0, p.count)
+                # n.run(PatternType.Test, 0, p.count)
+                p.printConfusionMatrix()
     print("Done")
