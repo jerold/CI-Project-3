@@ -317,9 +317,9 @@ if __name__=="__main__":
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm, TS.TrainingStrategyType.DifferentialGA]
 
     # Single:
-    strategies = [TS.TrainingStrategyType.EvolutionStrategy]
+    # strategies = [TS.TrainingStrategyType.EvolutionStrategy]
     # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
-    # strategies = [TS.TrainingStrategyType.DifferentialGA]
+    strategies = [TS.TrainingStrategyType.DifferentialGA]
 
 
     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
@@ -339,4 +339,5 @@ if __name__=="__main__":
                 # n.run(PatternType.Train, 0, p.count)
                 # n.run(PatternType.Test, 0, p.count)
                 p.printConfusionMatrix()
+                p.saveConfusionMatrix()
     print("Done")
