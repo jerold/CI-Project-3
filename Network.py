@@ -309,8 +309,8 @@ if __name__=="__main__":
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm, TS.TrainingStrategyType.DifferentialGA]
 
     # Single:
-    strategies = [TS.TrainingStrategyType.EvolutionStrategy]
-    # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
+    # strategies = [TS.TrainingStrategyType.EvolutionStrategy]
+    strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
     # strategies = [TS.TrainingStrategyType.DifferentialGA]
 
     trainPercentage = 0.8
