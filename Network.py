@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # Network.py
 
+
 import time
 import trainingStrategy as TS
 from patternSet import PatternSet
 import math
+
 
 class NetLayerType:
     """Enum for Layer Type"""
@@ -16,6 +18,7 @@ class NetLayerType:
             self.Input:"I",
             self.Hidden:"H",
             self.Output:"O"}[x]
+
 
 class PatternType:
     """Enum for Pattern Type ( Also used as Net running Mode)"""
@@ -33,12 +36,14 @@ def sigmoidal(parameter):
     """Activation Funtion used by the Neurons during feed forward"""
     return math.tanh(parameter)
 
+
 def outputError1(p, q):
     """Combined sum of the difference between two vectors"""
     errSum = 0.0
     for i in range(len(p)):
         errSum = errSum + math.fabs(p[i] - q[i])
     return errSum
+
 
 def outputError(target, inVals):
     """Simple Correct or incorrect rating for the result"""
@@ -48,15 +53,10 @@ def outputError(target, inVals):
         if maxValue < inVals[i]:
             maxIndex = i
             maxValue = inVals[i]
-    # print(inVals)
-    # print(target)
-    # if target[maxIndex] > 0:
-    #     print("Correct")
-    # else:
-    #     print("InCorrect")
     if target[maxIndex] > 0:
         return 0
     return outputError1(target, inVals)
+
 
 def vectorizeMatrix(p):
     """Turns a 2D matrix into a vector by appending the rows to one another"""
@@ -68,7 +68,9 @@ def vectorizeMatrix(p):
     else:
         return p
 
+
 def genomeTemplateFromArchitecture(inCount, hiddenArch, outCount):
+    """The Genome contains all weights within the net, and is therefore constructed from the net's architecture"""
     print("Arch: [" + str(inCount) + "][" + "][".join(str(n) for n in hiddenArch) + "][" + str(outCount) + "]")
     tempGenomeTemp = [inCount for _ in range(hiddenArch[0])]
     #print("[" + str(inCount) + "]x" + str(hiddenArch[0]))
@@ -80,8 +82,17 @@ def genomeTemplateFromArchitecture(inCount, hiddenArch, outCount):
     #print(tempGenomeTemp)
     return tempGenomeTemp
 
+
 class Net:
+    """The net is standard for MLP and all Genetic Algorithms.  It is composed of Layers
+    containing neurons, which each has a collection of weights.  Feedforward is accomplished
+    in a link list style from input layer to output layer.  The net can be configured to run
+    in Training or Testing mods."""
+
     def __init__(self, patternSet, hiddenArch):
+        Neuron.idIterator = 0
+        Neuron.inputNeuronCount = 0
+
         self.layers = [Layer(NetLayerType.Input, None, patternSet.inputMagnitude())]
         for elem in hiddenArch:
             self.layers.append(Layer(NetLayerType.Hidden, self.layers[-1], elem))
@@ -93,6 +104,8 @@ class Net:
     # the coorisponding pattern set is loaded and ran through the network
     # At the end Error is calculated
     def run(self, mode, startIndex, endIndex):
+        """Run all patterns within the specified range, populate the confusion matrix if Testing
+        train or pass on fitness information to the GA if in train mode."""
         patterns = self.patternSet.patterns
         Net.trainingStrategy.trainingMode = mode
         Net.trainingStrategy.patternCount = endIndex - startIndex
@@ -153,8 +166,9 @@ class Net:
 
 
 
-#Layers are of types Input Hidden and Output.  
 class Layer:
+    """A linked list, each layer contains neurons which contain weights."""
+
     def __init__(self, layerType, prevLayer, neuronCount):
         self.layerType = layerType
         self.prev = prevLayer
@@ -165,38 +179,40 @@ class Layer:
         for n in range(neuronCount):
             self.neurons.append(Neuron(self))
 
-    # Assign input values to the layer's neuron inputs
     def setInputs(self, inputVector):
+        """Assign input values to the layer's neuron inputs"""
         if len(inputVector) != len(self.neurons):
             raise NameError('Input dimension of network does not match that of pattern!')
         for p in range(len(self.neurons)):
             self.neurons[p].input = float(inputVector[p])
 
-    #return a vector of this Layer's Neuron outputs
     def getOutputs(self):
+        """return a vector of this Layer's Neuron outputs"""
         out = []
         for neuron in self.neurons:
             out.append(neuron.output)
         return out
 
     def fetchNeuronWeightsForCurrentMember(self):
+        """Typically called once for each member, this updates our neuron weights so we aren't
+        continuously fetching them from the Training Strategy"""
         if self.prev:
             for neuron in self.neurons:
                 neuron.weights = neuron.getMyWeights()['genes']
         if self.next:
             self.next.fetchNeuronWeightsForCurrentMember()
 
-
-    # Each Layer has a link to the next link in order.  Input values are translated from
-    # input to output in keeping with the Layer's function
     def feedForward(self):
+        """Each layer behaves a little differently here, but this for a given layer type
+        we perform the appropreate feedforward steps (passing neuron input to output), and
+        then tell the layer behind this one to feedforward"""
         if self.layerType == NetLayerType.Input:
             # Input Layer feeds all input to output with no work done
             for neuron in self.neurons:
                 neuron.output = neuron.input
             self.next.feedForward()
         elif self.layerType == NetLayerType.Hidden:
-            # RBF on the Euclidian Norm of input to center
+            # net input is passed through a sigmoidal activation function to produce output
             prevOutputs = self.prev.getOutputs()
             for neuron in self.neurons:
                 neuron.inputSum = 0.0
@@ -221,6 +237,9 @@ class Layer:
 # weights or centers in calculating it's outputs.  Calculations are done
 # in the layer as function of the neuron is tied to the layer it is contained in
 class Neuron:
+    """Contains inputs and outputs. Everything else in the neuron is provided to facilitate
+    the passing and translation of input to output"""
+
     idIterator = 0
     inputNeuronCount = 0
     
@@ -243,6 +262,7 @@ class Neuron:
 
     @classmethod
     def getWeights(self, neuronNumber):
+        """Communicates with the Net's Training Strategy to fetch the current member weights for a given neuron"""
         if neuronNumber-Neuron.inputNeuronCount < 0:
             raise("I pitty the fool who tries to get weights for an input neuron.")
         # print("Weights for [" + str(neuronNumber) + ":" + str(neuronNumber-Neuron.inputNeuronCount) + "]")
@@ -254,37 +274,9 @@ class Neuron:
         return Neuron.getWeights(self.id)
 
     def activate(self, inputSum):
+        """With your powers combined!"""
         return sigmoidal(inputSum)
 
-
-#
-# #Main
-# if __name__=="__main__":
-#     trainPercentage = 0.8
-#     attributeNeuronMultiplier = 2
-#     populationSize = 40
-#
-#     #p = PatternSet('data/adult/adult.json', trainPercentage)        # Cases:32561 @ 1x16 # same as above
-#     p = PatternSet('data/car/car.json', trainPercentage)            # Cases:1382 @ 1x16 # same as above
-#     #p = PatternSet('data/pendigits/pendigits.json', trainPercentage)        # Cases:10992 @ 1x16 # same as above
-#     #p = PatternSet('data/block/pageblocks.json', trainPercentage)
-#     #p = PatternSet('data/optdigits/optdigits.json', trainPercentage)        # 5620 @ 8x8
-#
-#     print("Weight Architecture:")
-#     # hiddenArchitecture = [len(p.patterns[0]['p'])*attributeNeuronMultiplier] # hidden layer is a new index in this list, value = number of neurons in that layer
-#     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
-#     TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
-#     Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
-#     #Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
-#     Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
-#
-#     n = Net(p, hiddenArchitecture)
-#     # n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-#     # n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
-#     n.run(PatternType.Train, 0, p.count)
-#     n.run(PatternType.Test, 0, p.count)
-#     p.printConfusionMatrix()
-#     print("Done")
 
 
 #Main
@@ -292,39 +284,45 @@ if __name__=="__main__":
     trainPercentage = 0.8
     attributeNeuronMultiplier = 2
     populationSize = 40
-    allDataTypes = []
-    # p = PatternSet('data/ionosphere/ionosphere.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/ionosphere/ionosphere.json', trainPercentage))
-    # p = PatternSet('data/block/pageblocks.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/block/pageblocks.json', trainPercentage))
-    # p = PatternSet('data/heart/heart.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/heart/heart.json', trainPercentage))
-    # p = PatternSet('data/glass/glass.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/glass/glass.json', trainPercentage))
-    # p = PatternSet('data/flare/flare.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/flare/flare.json', trainPercentage))
-    # p = PatternSet('data/car/car.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/car/car.json', trainPercentage))
-    # p = PatternSet('data/seeds/seeds.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/seeds/seeds.json', trainPercentage))
-    # p = PatternSet('data/wine/wine.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/wine/wine.json', trainPercentage))
-    # p = PatternSet('data/yeast/yeast.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/yeast/yeast.json', trainPercentage))
-    # p = PatternSet('data/zoo/zoo.json', trainPercentage)
-    allDataTypes.append(PatternSet('data/zoo/zoo.json', trainPercentage))
+    runsPerDataSet = 10
+
+    # Batch
+    # allDataTypes = ['data/ionosphere/ionosphere.json', 
+    #                 'data/block/pageblocks.json',
+    #                 'data/heart/heart.json',
+    #                 'data/glass/glass.json',
+    #                 'data/car/car.json',
+    #                 'data/seeds/seeds.json',
+    #                 'data/wine/wine.json',
+    #                 'data/yeast/yeast.json',
+    #                 'data/zoo/zoo.json',
+    #                 'data/iris/iris.json']
+
+    # Single:
+    allDataTypes = ['data/ionosphere/ionosphere.json']
+    # allDataTypes = ['data/block/pageblocks.json']
+    # allDataTypes = ['data/heart/heart.json']
+    # allDataTypes = ['data/glass/glass.json']
+    # allDataTypes = ['data/car/car.json']
+    # allDataTypes = ['data/seeds/seeds.json']
+    # allDataTypes = ['data/wine/wine.json']
+    # allDataTypes = ['data/yeast/yeast.json']
+    # allDataTypes = ['data/zoo/zoo.json']
+    # allDataTypes = ['data/iris/iris.json']
 
     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
     # Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
-    for p, pSet in enumerate(allDataTypes):
-        TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(pSet.patterns[0]['p']), hiddenArchitecture, len(pSet.targets))
-        Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
-        Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
-        print("Data Set: " + str(pSet.name))
-        n = Net(pSet, hiddenArchitecture)
-        n.run(PatternType.Train, 0, int(pSet.count*trainPercentage))
-        n.run(PatternType.Test, int(pSet.count*trainPercentage), pSet.count)
-        # n.run(PatternType.Train, 0, pSet.count)
-        # n.run(PatternType.Test, 0, pSet.count)
-        pSet.printConfusionMatrix()
+    for dataSet in allDataTypes:
+        for _ in range(runsPerDataSet):
+            p = PatternSet(dataSet)
+            print("Data Set: " + str(p.name))
+            TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
+            Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.EvolutionStrategy)
+            Net.trainingStrategy.initPopulation(populationSize, (-1.0, 1.0))
+            n = Net(p, hiddenArchitecture)
+            n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+            n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+            # n.run(PatternType.Train, 0, p.count)
+            # n.run(PatternType.Test, 0, p.count)
+            p.printConfusionMatrix()
     print("Done")
