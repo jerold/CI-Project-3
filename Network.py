@@ -287,7 +287,8 @@ if __name__=="__main__":
     populationSize = 40
     runsPerDataSet = 10
 
-    # Batch
+
+    # Batch:
     # allDataTypes = ['data/ionosphere/ionosphere.json', 
     #                 'data/block/pageblocks.json',
     #                 'data/heart/heart.json',
@@ -311,10 +312,15 @@ if __name__=="__main__":
     # allDataTypes = ['data/zoo/zoo.json']
     # allDataTypes = ['data/iris/iris.json']
 
+
+    # Batch:
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm, TS.TrainingStrategyType.DifferentialGA]
-    # strategies = [TS.TrainingStrategyType.EvolutionStrategy]
-    strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
+
+    # Single:
+    strategies = [TS.TrainingStrategyType.EvolutionStrategy]
+    # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
     # strategies = [TS.TrainingStrategyType.DifferentialGA]
+
 
     hiddenArchitecture = [12] # hidden layer is a new index in this list, value = number of neurons in that layer
     # Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(TS.TrainingStrategyType.GeneticAlgorithm)
