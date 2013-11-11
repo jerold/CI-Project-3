@@ -314,8 +314,8 @@ if __name__=="__main__":
     # strategies = [TS.TrainingStrategyType.DifferentialGA]
 
     trainPercentage = 0.8
-    maxGenerations = 20
-    populationSize = 10
+    maxGenerations = 80
+    populationSize = 20
     runsPerDataSet = 10
     hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
     for dataSet in allDataTypes:
