@@ -418,7 +418,7 @@ class DifferentialGA(TrainingStrategy):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.strategy = TrainingStrategyType.DifferentialGA
-        self.mask = self.createMask()
+        self.mask = []
         self.x = 'alpha' #way of selecting target: alpha, random
         self.y = 2        #number of difference vectors
         self.z = 'binomial' #crossover operator: mask, binomial. exponential
@@ -426,6 +426,12 @@ class DifferentialGA(TrainingStrategy):
         self.probability = 0.3
         self.mask
         self.useSigmas = False
+        self.childSuccess = 0.0
+        self.highestCurrentMemberId = 0
+        self.maxGenerations = 15
+
+    def select(self):
+        return 0
 
     def selectTwo(self):
         return random.sample(self.population, 2)
@@ -437,11 +443,14 @@ class DifferentialGA(TrainingStrategy):
                 prob = random.uniform(0, 1)
                 if prob < self.probability:
                     mask.append(elem)
+        self.mask = mask
 
-    def crossover(self):
+    def crossover(self, parents):
+        self.population.sort(key=lambda x: x.fitness, reverse=False)
+        if not self.alphas:
+            self.alphas.append(self.population[0])
         self.mask = self.createMask(self.alphas[0])
-        target = self.alphas[0]
-        children = []
+        self.highestCurrentMemberId = Member.memberIdInc
         for member in self.population:
             trial = self.mutateDiff()
             child = Member(0, 1, self.useSigmas, self.sigmaMax)
@@ -464,7 +473,7 @@ class DifferentialGA(TrainingStrategy):
                 trial[i][j] = target[i][j] + (self.beta * (elem - random2[i][j]))
         return trial
 
-    def evaluateFitness(self, child):
+    def evaluateFitness(self):
         return 0
 
     def repopulate(self):
@@ -477,6 +486,13 @@ class DifferentialGA(TrainingStrategy):
                 newPopulation.append(member)
             else:
                 newPopulation.append(self.childPopulation[i])
+        self.population = newPopulation.sort(key=lambda x: x.fitness, reverse=False)
+        self.childSuccess = 0.0
+        for member in self.population:
+            if member.id > self.highestCurrentMemberId:
+                self.childSuccess = self.childSuccess + 1
+        self.childSuccess = self.childSuccess/self.populationSize
+        print("G:" + str(self.generation) + " CC:[" + ", ".join(str(m.categoryCoverage) + ":" + str(round(m.fitness, 4)) for m in self.population) + "] AvgSig:" + str(round(self.avgSigma(), 3)) + " MemVar:" + str(round(self.memberVarience(), 4)) + " Alph:" + str(round(self.alphas[0].fitness, 4)) + " Avg: " + str(round(self.averageFitness(), 4)) + " P:" + str(round(self.childSuccess, 4)))
 
     def mutate(self):
         return 0
