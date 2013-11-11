@@ -367,7 +367,6 @@ class GeneticAlgorithm(TrainingStrategy):
     def crossover(self, parents):
         """For the """
         parents = list(parents)
-        print parents
         for j, gene in enumerate(parents[0]):
             child = Member(0, 1, self.useSigmas, self.sigmaMax)
             if j % 2 == 0:
