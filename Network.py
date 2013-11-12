@@ -282,7 +282,7 @@ class Neuron:
 #Main
 if __name__=="__main__":
     # Batch:
-    allDataTypes = ['data/ionosphere/ionosphere.json', 
+    allDataTypes = ['data/ionosphere/ionosphere.json',
                     'data/block/pageblocks.json',
                     'data/heart/heart.json',
                     'data/glass/glass.json',
@@ -306,18 +306,19 @@ if __name__=="__main__":
     # allDataTypes = ['data/iris/iris.json']
 
     # Batch:
-    strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm]
+    # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm]
 
     # Single:
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy]
-    # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
+    strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
     # strategies = [TS.TrainingStrategyType.DifferentialGA]
 
     trainPercentage = 0.8
     maxGenerations = 4 #40
     populationSize = 3 #20
     runsPerDataSet = 2 #10
-    # hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
+
+    #hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
     for dataSet in allDataTypes:
         for strat in strategies:
             p = PatternSet(dataSet)
