@@ -366,15 +366,32 @@ class GeneticAlgorithm(TrainingStrategy):
 
     def crossover(self, parents):
         """For the """
-        parents = parents
-        for j, gene in enumerate(parents[0]):
+        self.highestCurrentMemberId = Member.memberIdInc
+        for pair in parents:
+            pair = list(pair)
             child = Member(0, 1, self.useSigmas, self.sigmaMax)
-            if j % 2 == 0:
-                child.genome.append(parents[0][j])
-            else:
-                child.genome.append(parents[1][j])
+            j = 0
+            for g, gene in enumerate(child.genome):
+                for w, singleWeight in enumerate(gene):
+                    if j % 2 == 0:
+                        child.genome[g][w] = pair[0].genome[g][w]
+                    else:
+                        child.genome[g][w] = pair[1].genome[g][w]
+                    j = j + 1
             self.childPopulation.append(child)
         return self.childPopulation
+
+        # parents = list(parents)
+        # self.highestCurrentMemberId = Member.memberIdInc
+        # for i, pair in enumerate(parents[0]):
+        #     child = Member(0, 1, self.useSigmas, self.sigmaMax)
+        #     for j, weight in enumerate(gene):
+        #         if j % 2 == 0:
+        #             child.genome.append(parents[0].genome[i][j])
+        #         else:
+        #             child.genome.append(parents[1].genome[i][j])
+        #     self.childPopulation.append(child)
+        # return self.childPopulation
 
     def mutate(self):
         for member in self.population:

@@ -184,7 +184,7 @@ class PatternSet:
         keys = list(PatternSet.confusionMatrix.keys())
         keys.sort()
         with open(outfile, 'a') as file:
-            file.write(self.name + '\n')
+            #file.write(self.name + '\n')
             for key in keys:
                 for i, elem in enumerate(PatternSet.confusionMatrix[key]):
                     file.write(str(elem))
