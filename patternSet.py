@@ -180,13 +180,13 @@ class PatternSet:
         for key in keys:
             printPatterns(confMatrix[key])
 
-    def saveConfusionMatrix(self, p):
-        keys = list(p.confusionMatrix.keys())
+    def saveConfusionMatrix(self, outfile):
+        keys = list(PatternSet.confusionMatrix.keys())
         keys.sort()
-        with open('confusionMatrices.csv', 'a') as file:
+        with open(outfile, 'a') as file:
             file.write(self.name + '\n')
             for key in keys:
-                for i, elem in enumerate(self.confusionMatrix[key]):
+                for i, elem in enumerate(PatternSet.confusionMatrix[key]):
                     file.write(str(elem))
                     if i < len(keys)-1:
                         file.write(',')
