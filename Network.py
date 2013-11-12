@@ -284,19 +284,19 @@ class Neuron:
 #Main
 if __name__=="__main__":
     # Batch: (ordered by least time complex to most)
-    allDataTypes = ['data/iris/iris.json',
-                    'data/seeds/seeds.json',
-                    'data/glass/glass.json',
-                    'data/wine/wine.json',
-                    'data/zoo/zoo.json',
-                    'data/heart/heart.json',
-                    'data/car/car.json',
-                    'data/yeast/yeast.json',
-                    'data/block/pageblocks.json',
-                    'data/ionosphere/ionosphere.json']
+    # allDataTypes = ['data/iris/iris.json',
+    #                 'data/seeds/seeds.json',
+    #                 'data/glass/glass.json',
+    #                 'data/wine/wine.json',
+    #                 'data/zoo/zoo.json',
+    #                 'data/heart/heart.json',
+    #                 'data/car/car.json',
+    #                 'data/yeast/yeast.json',
+    #                 'data/block/pageblocks.json',
+    #                 'data/ionosphere/ionosphere.json']
 
     # Single:
-    # allDataTypes = ['data/iris/iris.json']
+    allDataTypes = ['data/iris/iris.json']
     # allDataTypes = ['data/seeds/seeds.json']
     # allDataTypes = ['data/glass/glass.json']
     # allDataTypes = ['data/wine/wine.json']
