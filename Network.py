@@ -296,7 +296,7 @@ if __name__=="__main__":
     #                 'data/ionosphere/ionosphere.json']
 
     # Single:
-    allDataTypes = ['data/iris/iris.json']
+    # allDataTypes = ['data/iris/iris.json']
     # allDataTypes = ['data/seeds/seeds.json']
     # allDataTypes = ['data/glass/glass.json']
     # allDataTypes = ['data/wine/wine.json']
@@ -305,14 +305,14 @@ if __name__=="__main__":
     # allDataTypes = ['data/car/car.json']
     # allDataTypes = ['data/yeast/yeast.json']
     # allDataTypes = ['data/block/pageblocks.json']
-    # allDataTypes = ['data/ionosphere/ionosphere.json']
+    allDataTypes = ['data/ionosphere/ionosphere.json']
 
     # Batch:
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm]
 
     # Single:
-    # strategies = [TS.TrainingStrategyType.EvolutionStrategy]
-    strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
+    strategies = [TS.TrainingStrategyType.EvolutionStrategy]
+    # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
     # strategies = [TS.TrainingStrategyType.DifferentialGA]
 
     trainPercentage = 0.8
