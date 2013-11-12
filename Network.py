@@ -133,17 +133,19 @@ class Net:
                         Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].successFeedback(self.patternSet.combinedTargetVector(correctCategories))
                         fitness = Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness
                         fitness = fitness/(endIndex - startIndex)
-                        fitness = fitness/(len(correctCategories))
+                        if len(correctCategories) > 0:
+                            fitness = fitness/(len(correctCategories))
                         Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness = fitness
-                        # print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
+                        print("G[" + str(Net.trainingStrategy.generation) + "] C[" + str(Net.trainingStrategy.currentChildMember) + "] F[" + str(round(Net.trainingStrategy.childPopulation[Net.trainingStrategy.currentChildMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
                     else:
                         Net.trainingStrategy.population[Net.trainingStrategy.currentMember].categoryCoverage = correctCategories
                         Net.trainingStrategy.population[Net.trainingStrategy.currentMember].successFeedback(self.patternSet.combinedTargetVector(correctCategories))
                         fitness = Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness
                         fitness = fitness/(endIndex - startIndex)
-                        fitness = fitness/(len(correctCategories))
+                        if len(correctCategories) > 0:
+                            fitness = fitness/(len(correctCategories))
                         Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness = fitness
-                        # print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
+                        print("G[" + str(Net.trainingStrategy.generation) + "] M[" + str(Net.trainingStrategy.currentMember) + "] F[" + str(round(Net.trainingStrategy.population[Net.trainingStrategy.currentMember].fitness, 3)) + "] " + " ".join(str(c) for c in correctCategories))
                     Net.trainingStrategy.continueToNextMember()
                 Net.trainingStrategy.continueToNextGeneration()
         else:
@@ -281,42 +283,42 @@ class Neuron:
 
 #Main
 if __name__=="__main__":
-    # Batch:
-    allDataTypes = ['data/ionosphere/ionosphere.json',
-                    'data/block/pageblocks.json',
-                    'data/heart/heart.json',
-                    'data/glass/glass.json',
-                    'data/car/car.json',
+    # Batch: (ordered by least time complex to most)
+    allDataTypes = ['data/iris/iris.json',
                     'data/seeds/seeds.json',
+                    'data/glass/glass.json',
                     'data/wine/wine.json',
-                    'data/yeast/yeast.json',
                     'data/zoo/zoo.json',
-                    'data/iris/iris.json']
+                    'data/heart/heart.json',
+                    'data/car/car.json',
+                    'data/yeast/yeast.json',
+                    'data/block/pageblocks.json',
+                    'data/ionosphere/ionosphere.json']
 
     # Single:
-    # allDataTypes = ['data/ionosphere/ionosphere.json']
-    # allDataTypes = ['data/block/pageblocks.json']
-    # allDataTypes = ['data/heart/heart.json']
-    # allDataTypes = ['data/glass/glass.json']
-    # allDataTypes = ['data/car/car.json']
-    # allDataTypes = ['data/seeds/seeds.json']
-    # allDataTypes = ['data/wine/wine.json']
-    # allDataTypes = ['data/yeast/yeast.json']
-    # allDataTypes = ['data/zoo/zoo.json']
     # allDataTypes = ['data/iris/iris.json']
+    # allDataTypes = ['data/seeds/seeds.json']
+    # allDataTypes = ['data/glass/glass.json']
+    # allDataTypes = ['data/wine/wine.json']
+    # allDataTypes = ['data/zoo/zoo.json']
+    # allDataTypes = ['data/heart/heart.json']
+    # allDataTypes = ['data/car/car.json']
+    # allDataTypes = ['data/yeast/yeast.json']
+    # allDataTypes = ['data/block/pageblocks.json']
+    # allDataTypes = ['data/ionosphere/ionosphere.json']
 
     # Batch:
-    strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm]
+    # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm]
 
     # Single:
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy]
-    # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
+    strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
     # strategies = [TS.TrainingStrategyType.DifferentialGA]
 
     trainPercentage = 0.8
-    maxGenerations = 40
+    maxGenerations = 30
     populationSize = 20
-    runsPerDataSet = 10
+    runsPerDataSet = 5 #10
 
     #hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
     for dataSet in allDataTypes:

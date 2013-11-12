@@ -155,14 +155,15 @@ class PatternSet:
                 PatternSet.confusionMatrix[str(key)] = [0.0] * len(keys)
         PatternSet.correctness = []
 
-    def printCombinedCorrectness(self):
+    def calcStandardDeviation(self):
         if len(PatternSet.correctness) > 0:
             average = sum(PatternSet.correctness)/len(PatternSet.correctness)
             squaredDifferences = 0.0
             for val in PatternSet.correctness:
                 squaredDifferences = squaredDifferences + (val - average)*(val - average)
             meanSquaredDifference = squaredDifferences/len(PatternSet.correctness)
-            print("Standard Deviation of Correctness: " + str(round(math.sqrt(meanSquaredDifference), 4)))
+            standardDeviation = round(math.sqrt(meanSquaredDifference), 4)
+            return standardDeviation
 
     def printStats(self):
         print("\nConfusion Matrix")
@@ -172,7 +173,7 @@ class PatternSet:
             print("\nMulti-Run Combined Confusion Matrix")
             self.printConfusionMatrix(PatternSet.confusionMatrix)
             self.calcPrecisionAndRecall(PatternSet.confusionMatrix)
-            self.printCombinedCorrectness()
+            print("Standard Deviation of Correctness: " + str(self.calcStandardDeviation()))
 
     def printConfusionMatrix(self, confMatrix):
         keys = list(confMatrix.keys())
@@ -191,6 +192,9 @@ class PatternSet:
                     if i < len(keys)-1:
                         file.write(',')
                 file.write('\n')
+            file.write("PRC,"+str(self.calcPrecisionrecallCorrectness(PatternSet.confusionMatrix))+"\n")
+            file.write("SD,"+str(self.calcStandardDeviation())+"\n")
+
 
     def calcPrecision(self, k):
         tp = self.confusionMatrix[k][k]
@@ -240,6 +244,39 @@ class PatternSet:
         PatternSet.correctness.append(sum(diagonal)/matrixSum)
         print("Overall Correct: " + str(round(sum(diagonal)/matrixSum, 4)))
 
+    def calcPrecisionrecallCorrectness(self, confMatrix):
+        keys = list(confMatrix.keys())
+        matrixSum = 0.0
+        keys.sort()
+        i = 0
+        precision = []
+        recall = []
+        diagonal = []
+        for key in keys:
+            row = confMatrix[key]
+            rowSum = 0
+            for j, val in enumerate(row):
+                if i==j:
+                    diagonal.append(val)
+                rowSum += val
+                if len(recall) == j:
+                    recall.append(val)
+                else:
+                    recall[j] = recall[j] + val
+            matrixSum = matrixSum + rowSum
+            precision.append(rowSum)
+            i += 1
+        returnDict = {'key':[], 'precision':[], 'recall':[], 'correctness':0.0}
+        for i, elem in enumerate(diagonal):
+            if abs(precision[i]) > 0.0 and abs(recall[i]) > 0.0:
+                returnDict['key'].append(keys[i])
+                returnDict['precision'].append(round(elem / precision[i], 4))
+                returnDict['recall'].append(round(elem/recall[i], 4))
+        PatternSet.correctness.append(sum(diagonal)/matrixSum)
+        returnDict['correctness'] = round(sum(diagonal)/matrixSum, 4)
+        return returnDict
+
+
     def targetVector(self, key):
         try:
             return self.targetMatrix[key]
@@ -249,11 +286,13 @@ class PatternSet:
     def combinedTargetVector(self, keys):
         if len(keys) == 1:
             return self.targetMatrix[keys[0]]
-        ctv = [t for t in self.targetMatrix[keys[0]]]
-        for key in keys[1:]:
-            tv = self.targetMatrix[key]
-            for c, cat in enumerate(ctv):
-                ctv[c] = tv[c] if tv[c] == 1 else ctv[c]
+        ctv = [0 for _ in self.targetMatrix[self.targetMatrix.keys()[0]]]
+        if len(keys) > 1:
+            ctv = [t for t in self.targetMatrix[keys[0]]]
+            for key in keys[1:]:
+                tv = self.targetMatrix[key]
+                for c, cat in enumerate(ctv):
+                    ctv[c] = tv[c] if tv[c] == 1 else ctv[c]
         return ctv
 
     def updateConfusionMatrix(self, key, outputs):

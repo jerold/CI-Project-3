@@ -443,6 +443,7 @@ class GeneticAlgorithm(TrainingStrategy):
         self.population = oldAndNew[:self.maxPopulationSize]
         if not self.population:
             self.alphas.append(self.population[0])
+            self.alphas.sort(key=lambda x: x.fitness, reverse=False)
         recordItems(", ".join(str(int(m.fitness)) for m in self.population) + ", " + str(self.childSuccess))
         self.childSuccess = 0.0
         for member in self.population:
