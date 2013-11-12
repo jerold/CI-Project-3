@@ -469,6 +469,8 @@ class DifferentialGA(TrainingStrategy):
         self.population.sort(key=lambda x: x.fitness, reverse=False)
         if not self.alphas:
             self.alphas.append(self.population[0])
+        else:
+            self.alphas[0] = self.population[0]
         self.createMask(self.alphas[0])
         self.highestCurrentMemberId = Member.memberIdInc
         self.childPopulation = []

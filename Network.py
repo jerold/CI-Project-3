@@ -282,16 +282,16 @@ class Neuron:
 #Main
 if __name__=="__main__":
     # Batch:
-    # allDataTypes = ['data/ionosphere/ionosphere.json', 
-    #                 'data/block/pageblocks.json',
-    #                 'data/heart/heart.json',
-    #                 'data/glass/glass.json',
-    #                 'data/car/car.json',
-    #                 'data/seeds/seeds.json',
-    #                 'data/wine/wine.json',
-    #                 'data/yeast/yeast.json',
-    #                 'data/zoo/zoo.json',
-    #                 'data/iris/iris.json']
+    allDataTypes = ['data/ionosphere/ionosphere.json',
+                    'data/block/pageblocks.json',
+                    'data/heart/heart.json',
+                    'data/glass/glass.json',
+                    'data/car/car.json',
+                    'data/seeds/seeds.json',
+                    'data/wine/wine.json',
+                    'data/yeast/yeast.json',
+                    'data/zoo/zoo.json',
+                    'data/iris/iris.json']
 
     # Single:
     # allDataTypes = ['data/ionosphere/ionosphere.json']
@@ -300,7 +300,7 @@ if __name__=="__main__":
     # allDataTypes = ['data/glass/glass.json']
     # allDataTypes = ['data/car/car.json']
     # allDataTypes = ['data/seeds/seeds.json']
-    allDataTypes = ['data/wine/wine.json']
+    # allDataTypes = ['data/wine/wine.json']
     # allDataTypes = ['data/yeast/yeast.json']
     # allDataTypes = ['data/zoo/zoo.json']
     # allDataTypes = ['data/iris/iris.json']
@@ -315,7 +315,7 @@ if __name__=="__main__":
 
     trainPercentage = 0.8
     maxGenerations = 40
-    populationSize = 20
+    populationSize = 10
     runsPerDataSet = 10
     hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
     for dataSet in allDataTypes:
