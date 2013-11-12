@@ -299,8 +299,8 @@ if __name__=="__main__":
     # allDataTypes = ['data/heart/heart.json']
     # allDataTypes = ['data/glass/glass.json']
     # allDataTypes = ['data/car/car.json']
-    allDataTypes = ['data/seeds/seeds.json']
-    # allDataTypes = ['data/wine/wine.json']
+    # allDataTypes = ['data/seeds/seeds.json']
+    allDataTypes = ['data/wine/wine.json']
     # allDataTypes = ['data/yeast/yeast.json']
     # allDataTypes = ['data/zoo/zoo.json']
     # allDataTypes = ['data/iris/iris.json']
@@ -310,22 +310,23 @@ if __name__=="__main__":
 
     # Single:
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy]
-    strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
-    # strategies = [TS.TrainingStrategyType.DifferentialGA]
+    # strategies = [TS.TrainingStrategyType.GeneticAlgorithm]
+    strategies = [TS.TrainingStrategyType.DifferentialGA]
 
     trainPercentage = 0.8
-    maxGenerations = 80
+    maxGenerations = 40
     populationSize = 20
     runsPerDataSet = 10
     hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
     for dataSet in allDataTypes:
         for strat in strategies:
+            p = PatternSet(dataSet)
             for run in range(runsPerDataSet):
                 print("\nData Set: (" + str(dataSet) + ") Run: " + str(run))
-                p = PatternSet(dataSet)
+
                 if run == 0:
                     p.initCombinedConfusionMatrix()
-
+                hiddenArchitecture = [2*len(p.patterns[0]['p'])] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
                 TS.Member.genomeTemplate = genomeTemplateFromArchitecture(len(p.patterns[0]['p']), hiddenArchitecture, len(p.targets))
                 Net.trainingStrategy = TS.TrainingStrategy.getTrainingStrategyOfType(strat)
                 Net.trainingStrategy.maxGenerations = maxGenerations
@@ -336,6 +337,6 @@ if __name__=="__main__":
                 n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
                 # n.run(PatternType.Train, 0, p.count)
                 # n.run(PatternType.Test, 0, p.count)
-                p.saveConfusionMatrix()
                 p.printStats()
+            p.saveConfusionMatrix(p)
     print("Done")

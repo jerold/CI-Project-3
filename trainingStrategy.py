@@ -350,7 +350,7 @@ class GeneticAlgorithm(TrainingStrategy):
         self.strategy = TrainingStrategyType.GeneticAlgorithm
         self.childSuccess = 0.0
         self.highestCurrentMemberId = 0
-        self.maxGenerations = 15
+        self.maxGenerations = 80
         self.childPopulation = []
 
     def select(self):
@@ -448,7 +448,7 @@ class DifferentialGA(TrainingStrategy):
         self.useSigmas = False
         self.childSuccess = 0.0
         self.highestCurrentMemberId = 0
-        self.maxGenerations = 15
+        self.maxGenerations = 40
 
     def select(self):
         return 0

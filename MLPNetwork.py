@@ -272,36 +272,42 @@ class Neuron:
 
 #Main
 if __name__=="__main__":
-    trainPercentage = 0.8
-    patterns = []
-    # p = PatternSet('data/ionosphere/ionosphere.json', trainPercentage)
-    # patterns.append(p)
-    # p = PatternSet('data/block/pageblocks.json', trainPercentage)
-    # patterns.append(p)
-    # p = PatternSet('data/heart/heart.json', trainPercentage)
-    # patterns.append(p)
-    # p = PatternSet('data/glass/glass.json', trainPercentage)
-    # patterns.append(p)
-    # p = PatternSet('data/flare/flare.json', trainPercentage)
-    # patterns.append(p)
-    p = PatternSet('data/car/car.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/seeds/seeds.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/wine/wine.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/yeast/yeast.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/iris/iris.json', trainPercentage)
-    patterns.append(p)
-    p = PatternSet('data/iris/iris.json', trainPercentage)
-    patterns.append(p)
+    # Batch:
+    # allDataTypes = ['data/ionosphere/ionosphere.json',
+    #                 'data/block/pageblocks.json',
+    #                 'data/heart/heart.json',
+    #                 'data/glass/glass.json',
+    #                 'data/car/car.json',
+    #                 'data/seeds/seeds.json',
+    #                 'data/wine/wine.json',
+    #                 'data/yeast/yeast.json',
+    #                 'data/zoo/zoo.json',
+    #                 'data/iris/iris.json']
 
-    for p in patterns:
-        n = Network(p)
-        n.run(PatternType.Train, 0, int(p.count*trainPercentage))
-        saveWeights(n)
-        n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+    # Single:
+    # allDataTypes = ['data/ionosphere/ionosphere.json']
+    # allDataTypes = ['data/block/pageblocks.json']
+    # allDataTypes = ['data/heart/heart.json']
+    # allDataTypes = ['data/glass/glass.json']
+    # allDataTypes = ['data/car/car.json']
+    # allDataTypes = ['data/seeds/seeds.json']
+    allDataTypes = ['data/wine/wine.json']
+    # allDataTypes = ['data/yeast/yeast.json']
+    # allDataTypes = ['data/zoo/zoo.json']
+    # allDataTypes = ['data/iris/iris.json']
+
+    trainPercentage = 0.8
+    runsPerDataSet = 10
+
+    for dataset in allDataTypes:
+        p = PatternSet(dataset)
+        for run in range(runsPerDataSet):
+            if run == 0:
+                p.initCombinedConfusionMatrix()
+            n = Network(p)
+            n.run(PatternType.Train, 0, int(p.count*trainPercentage))
+            saveWeights(n)
+            n.run(PatternType.Test, int(p.count*trainPercentage), p.count)
+            p.printStats()
         p.saveConfusionMatrix()
-        p.printConfusionMatrix()
     print("Done")
