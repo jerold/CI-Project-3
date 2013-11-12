@@ -323,8 +323,9 @@ if __name__=="__main__":
     #hiddenArchitecture = [14] # each hidden layer is a new index in this list, it's value = number of neurons in that layer
     for dataSet in allDataTypes:
         for strat in strategies:
-            p = PatternSet(dataSet)
+            p = PatternSet(dataSet) # this is here simply to init the confusion matrix
             for run in range(runsPerDataSet):
+                p = PatternSet(dataSet)
                 print("\nData Set: (" + str(dataSet) + ") Run: " + str(run) + " Strategy: " + str(TS.TrainingStrategyType.desc(strat)))
 
                 if run == 0:
