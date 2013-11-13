@@ -300,12 +300,12 @@ if __name__=="__main__":
     # allDataTypes = ['data/seeds/seeds.json']
     # allDataTypes = ['data/glass/glass.json']
     # allDataTypes = ['data/wine/wine.json']
-    # allDataTypes = ['data/zoo/zoo.json']
+    allDataTypes = ['data/zoo/zoo.json']
     # allDataTypes = ['data/heart/heart.json']
     # allDataTypes = ['data/car/car.json']
     # allDataTypes = ['data/yeast/yeast.json']
     # allDataTypes = ['data/block/pageblocks.json']
-    allDataTypes = ['data/ionosphere/ionosphere.json']
+    # allDataTypes = ['data/ionosphere/ionosphere.json']
 
     # Batch:
     # strategies = [TS.TrainingStrategyType.EvolutionStrategy, TS.TrainingStrategyType.GeneticAlgorithm]

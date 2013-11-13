@@ -1,2 +1,11 @@
 133.0,77.0
 303.0,197.0
+Multi-Run Combined Confusion Matrix
+37.0, 63.0
+51.0, 133.0
+
+Key, Precision, Recall
+0, 0.37, 0.4205
+1, 0.7228, 0.6786
+Overall Correct: 0.5986
+Standard Deviation of Correctness: 0.0482
